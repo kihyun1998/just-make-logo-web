@@ -1,4 +1,7 @@
-import { Link, useNavigate } from "react-router";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Moon, Sun, Globe, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,19 +18,19 @@ export function Header() {
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const currentLang = i18n.language.startsWith("ko") ? "ko" : "en";
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    router.push("/");
   };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Link to="/" className="text-lg font-bold">
+        <Link href="/" className="text-lg font-bold">
           {t("header.title")}
         </Link>
 
@@ -74,7 +77,7 @@ export function Header() {
             </Button>
           ) : (
             <Button variant="default" size="sm" asChild>
-              <Link to="/login">{t("common.login")}</Link>
+              <Link href="/login">{t("common.login")}</Link>
             </Button>
           )}
         </div>

@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
@@ -7,7 +9,7 @@ import { useAuth } from "@/contexts/auth-context";
 export function LoginPage() {
   const { t } = useTranslation();
   const { signIn } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +27,7 @@ export function LoginPage() {
     if (error) {
       setError(t("login.error"));
     } else {
-      navigate("/");
+      router.push("/");
     }
   };
 
