@@ -1,0 +1,29 @@
+{
+  "common": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "language": "언어",
+    "theme": "테마",
+    "light": "라이트",
+    "dark": "다크",
+    "system": "시스템"
+  },
+  "header": {
+    "title": "Just Make Logo"
+  },
+  "footer": {
+    "copyright": "© 2025 Just Make Logo. All rights reserved.",
+    "description": "간단하고 빠르게 로고를 만들어보세요."
+  },
+  "home": {
+    "title": "나만의 로고를 만들어보세요",
+    "subtitle": "AI 기반 로고 생성 서비스"
+  },
+  "login": {
+    "title": "로그인",
+    "email": "이메일",
+    "password": "비밀번호",
+    "submit": "로그인",
+    "error": "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요."
+  }
+}
