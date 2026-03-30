@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useLogoStore } from '@/store/logo-store'
 import { sanitizeSvg } from '@/lib/sanitize-svg'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { Upload, X } from 'lucide-react'
 
 export function SvgPanel() {
@@ -59,10 +60,12 @@ export function SvgPanel() {
       ) : (
         <div className="flex flex-col gap-2">
           {previewUrl && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
+            <Image
               src={previewUrl}
               alt="SVG preview"
+              width={200}
+              height={80}
+              unoptimized
               className="h-20 w-full rounded-md border border-border bg-white object-contain p-2"
             />
           )}

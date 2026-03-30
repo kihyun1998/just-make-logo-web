@@ -6,10 +6,21 @@ import { useLogoStore } from '@/store/logo-store'
 import { renderLogo } from '@/lib/render-logo'
 import type { LogoState } from '@/types/logo'
 
-const stateSelector = (s: LogoState & { set: unknown; reset: unknown }): LogoState => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { set: _, reset: __, ...state } = s
-  return state as LogoState
+const stateKeys: (keyof LogoState)[] = [
+  'schemaVersion', 'mode', 'text1', 'text2', 'text3', 'textLines',
+  'fontFamily', 'fontWeight', 'textColor', 'textPadding', 'italic',
+  'uppercase', 'underline', 'rotation', 'letterSpacing', 'lineHeight',
+  'shadow', 'stroke', 'subText', 'backgroundColor', 'backgroundShape',
+  'isTransparent', 'canvasPadding', 'borderRadius', 'useGradient',
+  'gradientType', 'gradientDirection', 'gradientStops', 'imageDataUrl',
+  'imagePosition', 'imageFlex', 'imageGap', 'imageFit', 'svgContent',
+  'canvasWidth', 'canvasHeight', 'exportFormat', 'exportScale',
+]
+
+const stateSelector = (s: Record<string, unknown>): LogoState => {
+  const result: Record<string, unknown> = {}
+  for (const key of stateKeys) result[key] = s[key]
+  return result as LogoState
 }
 
 export function LogoCanvas() {

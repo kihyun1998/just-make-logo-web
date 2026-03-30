@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import Image from 'next/image'
 import { Upload, X } from 'lucide-react'
 import type { ImagePosition, ImageFit } from '@/types/logo'
 
@@ -59,10 +60,12 @@ export function ImagePanel() {
       ) : (
         <div className="flex flex-col gap-2">
           <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={imageDataUrl}
               alt="Logo image"
+              width={200}
+              height={80}
+              unoptimized
               className="h-20 w-full rounded-md border border-border object-contain"
             />
             <button
