@@ -1,7 +1,7 @@
 # Just Make Logo - 구현 로드맵
 
 > 기준 문서: `docs/SPEC_TEXT_LOGO.md`
-> 현재 상태: **Phase 2 완료, Phase 3 진행 중** (Step 3-1 컬러 프리셋 완료)
+> 현재 상태: **Phase 3 완료, Phase 4 진행 중** (Step 4-1 Supabase + 회원가입 완료)
 
 ---
 
@@ -254,7 +254,7 @@
 - [x] `auth-context.tsx` → Google OAuth 전환 (`signInWithOAuth({ provider: 'google' })`)
 - [x] `/app/auth/callback/route.ts` OAuth 콜백 라우트
 - [x] 로그인 페이지 Google OAuth 버튼으로 교체
-- [ ] 회원가입 페이지 (상세 추후 확정 — npm 패키지 대기 중)
+- [x] 회원가입 페이지 (`@just-apps/auth` 패키지 — LoginView, TermsAgreementView, AuthCallbackView, MyPageView, AccountDeleteView, UserMenu)
 
 ### Step 4-2. 프로젝트 저장 스키마 ✅
 - [x] `logo_projects` 테이블 마이그레이션:
@@ -363,7 +363,7 @@
 |------|---------|------------|
 | **Phase 1** (MVP) ✅ | 7 스텝 | Canvas 렌더러, FittedBox, 폰트 로딩 |
 | **Phase 2** (모드 확장) ✅ | 7 스텝 | 내보내기 리팩터, Text+Image 레이아웃, SVG 직접 생성 |
-| **Phase 3** (일괄+클립보드) | 2 스텝 | ZIP 생성, Clipboard API |
+| **Phase 3** (일괄+클립보드) ✅ | 3 스텝 | ZIP 생성, Clipboard API |
 | **Phase 4** (Supabase) | 4 스텝 | DB 스키마, RLS, 자동저장, 마이그레이션 |
 | **Phase 5** (스토어 에셋) | 4 스텝 | 템플릿 시스템, 디바이스 목업, 멀티 텍스트 블록 |
 | **Phase 6** (후순위) | 4 스텝 | URL 인코딩, ICO 생성, 접근성 |
@@ -373,8 +373,8 @@
 ```
 Phase 1 ✅
   └→ Phase 2 ✅
-       └→ Phase 3 (일괄 내보내기 + 클립보드)
-            └→ Phase 4 (Supabase 연동) ★ 서버 저장 기반
+       └→ Phase 3 ✅
+            └→ Phase 4 (Supabase 연동) ★ Step 4-1, 4-2 완료, 4-3, 4-4 진행 중
                  ├→ Phase 5 (스토어 에셋) — Phase 4 저장 기능 활용
                  └→ Phase 6 (후순위) — 독립적, 언제든 가능
 ```

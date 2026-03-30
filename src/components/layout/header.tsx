@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Moon, Sun, Globe, LogOut } from "lucide-react";
+import { Moon, Sun, Globe } from "lucide-react";
+import { UserMenu } from "@just-apps/auth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,18 +15,16 @@ import {
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/contexts/auth-context";
 
+import { i18nToLocale } from "@/lib/locale";
+
 export function Header() {
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const router = useRouter();
 
   const currentLang = i18n.language.startsWith("ko") ? "ko" : "en";
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-  };
+  const locale = i18nToLocale(i18n.language);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -69,12 +68,16 @@ export function Header() {
             <span className="sr-only">{t("common.theme")}</span>
           </Button>
 
-          {/* Auth Button */}
+          {/* Auth */}
           {user ? (
-            <Button variant="ghost" size="icon" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
-              <span className="sr-only">{t("common.logout")}</span>
-            </Button>
+            <UserMenu
+              locale={locale}
+              user={user}
+              role={role === "admin" ? "admin" : "user"}
+              onMyPage={() => router.push("/mypage")}
+              onAdmin={() => router.push("/admin")}
+              onSignOut={() => signOut()}
+            />
           ) : (
             <Button variant="default" size="sm" asChild>
               <Link href="/login">{t("common.login")}</Link>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../node_modules/@just-apps/auth/src/**/*.tsx";
 
 @custom-variant dark (&:is(.dark *));
 
