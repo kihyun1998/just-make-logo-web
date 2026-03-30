@@ -231,10 +231,10 @@
 - [x] ZIP 파일로 묶어서 다운로드
 - [x] 진행률 표시 + 완료 시 성공 개수 표시
 
-### Step 3-3. 클립보드 복사
-- [ ] 클립보드 복사 (`navigator.clipboard.write()`)
-- [ ] PNG Blob → ClipboardItem 변환
-- [ ] 복사 완료 피드백 (토스트 또는 버튼 상태 변경)
+### Step 3-3. 클립보드 복사 ✅
+- [x] 클립보드 복사 (`navigator.clipboard.write()`)
+- [x] PNG Blob → ClipboardItem 변환
+- [x] 복사 완료 피드백 (체크 아이콘 2초 표시)
 
 **산출물:** Phase 3 완성. 일괄 내보내기 + 클립보드 복사
 

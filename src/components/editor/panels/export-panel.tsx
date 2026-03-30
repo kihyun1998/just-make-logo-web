@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Download, Archive, Check } from 'lucide-react'
+import { Download, Archive, Check, Copy } from 'lucide-react'
 import type { ExportFormat, ExportScale } from '@/types/logo'
 
 export function ExportPanel() {
@@ -133,8 +133,11 @@ export function ExportPanel() {
         Output: {canvasWidth * exportScale} x {canvasHeight * exportScale} px
       </p>
 
-      {/* Export button */}
-      <ExportButton />
+      {/* Export + Copy buttons */}
+      <div className="flex gap-2">
+        <ExportButton />
+        <CopyButton />
+      </div>
 
       {/* Device presets */}
       <DevicePresets />
@@ -387,9 +390,88 @@ function ExportButton() {
   }
 
   return (
-    <Button onClick={handleExport} className="w-full gap-2">
+    <Button onClick={handleExport} className="flex-1 gap-2">
       <Download className="h-4 w-4" />
-      Export {exportFormat.toUpperCase()}
+      {exportFormat.toUpperCase()}
+    </Button>
+  )
+}
+
+function CopyButton() {
+  const copyingRef = useRef(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    if (copyingRef.current) return
+    copyingRef.current = true
+
+    try {
+      const state = useLogoStore.getState()
+      const { canvasWidth, canvasHeight, exportScale } = state
+
+      // Ensure fonts are loaded
+      const fontStyle = state.italic ? 'italic ' : ''
+      await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
+      if (state.subText.enabled) {
+        await document.fonts.load(`${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`)
+      }
+
+      // Load image if needed
+      let image: HTMLImageElement | null = null
+      const imgSrc = state.mode === 'svgOnly' && state.svgContent
+        ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
+        : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
+
+      if (imgSrc) {
+        image = await new Promise<HTMLImageElement | null>((resolve) => {
+          const img = new Image()
+          img.onload = () => resolve(img)
+          img.onerror = () => resolve(null)
+          img.src = imgSrc
+        })
+        if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
+      }
+
+      const w = canvasWidth * exportScale
+      const h = canvasHeight * exportScale
+
+      const offscreen = document.createElement('canvas')
+      offscreen.width = w
+      offscreen.height = h
+      const ctx = offscreen.getContext('2d')
+      if (!ctx) return
+
+      ctx.scale(exportScale, exportScale)
+
+      renderLogo(ctx, state, canvasWidth, canvasHeight, {
+        checkerboard: false,
+        jpgBackground: false,
+        image,
+      })
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        offscreen.toBlob((b) => {
+          offscreen.width = 0
+          offscreen.height = 0
+          resolve(b)
+        }, 'image/png')
+      })
+
+      if (blob) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob }),
+        ])
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } finally {
+      copyingRef.current = false
+    }
+  }
+
+  return (
+    <Button onClick={handleCopy} variant="outline" size="icon" className="shrink-0" title="Copy to clipboard">
+      {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
     </Button>
   )
 }
