@@ -1,7 +1,7 @@
 # Just Make Logo - 구현 로드맵
 
 > 기준 문서: `docs/SPEC_TEXT_LOGO.md`
-> 현재 상태: **Phase 1 구현 완료** (일부 미비사항 있음)
+> 현재 상태: **Phase 2 완료, Phase 3 진행 중** (Step 3-1 컬러 프리셋 완료)
 
 ---
 
@@ -205,9 +205,9 @@
 
 ---
 
-## Phase 3: 프리셋 + 일괄 내보내기
+## Phase 3: 일괄 내보내기 + 클립보드
 
-목표: **설정 저장/공유** + 일괄 내보내기로 실무 생산성 확보
+목표: **일괄 내보내기 + 클립보드 복사**로 실무 생산성 마무리
 
 ### Step 3-0. Phase 2 이슈 수정 ✅ (Phase 2에서 모두 해결)
 - [x] C1: SVG sanitize (`sanitize-svg.ts`)
@@ -224,46 +224,109 @@
 - [x] 프리셋 목록 표시 / 적용 / 이름 변경 / 삭제
 - [x] localStorage 영구 저장 (최대 50개, try/catch, ID 기반)
 
-### Step 3-2. 전체 설정 JSON
-- [ ] 현재 설정 → JSON 파일 내보내기 (Pretty-printed)
-- [ ] JSON 파일 → 설정 불러오기 (파일 피커, `.json` 필터)
-- [ ] 이미지/SVG 파일은 프리셋에서 제외 처리
-
-### Step 3-3. 그룹 일괄 내보내기
+### Step 3-2. 그룹 일괄 내보내기
 - [ ] jszip 설치
 - [ ] 디바이스 그룹 선택 UI (체크박스)
 - [ ] 선택 그룹의 모든 크기로 일괄 렌더링
 - [ ] ZIP 파일로 묶어서 다운로드
 - [ ] 진행률 표시 + 완료 시 성공 개수 표시
 
-### Step 3-4. Radial 고급 + 클립보드
-- [ ] Radial 그라디언트 중심점 X/Y 2D 드래그 UI
-- [ ] 반경/초점 슬라이더
+### Step 3-3. 클립보드 복사
 - [ ] 클립보드 복사 (`navigator.clipboard.write()`)
+- [ ] PNG Blob → ClipboardItem 변환
+- [ ] 복사 완료 피드백 (토스트 또는 버튼 상태 변경)
 
-**산출물:** Phase 3 완성. 프리셋 관리 + 일괄 내보내기
+**산출물:** Phase 3 완성. 일괄 내보내기 + 클립보드 복사
 
 ---
 
-## Phase 4: 후순위 개선
+## Phase 4: Supabase 연동 — 서버 저장
 
-### Step 4-1. URL 공유
+목표: **로그인 + 프로젝트 서버 저장/불러오기**로 로컬 의존 제거
+
+### Step 4-1. Supabase 프로젝트 세팅
+- [ ] Supabase CLI 초기화 (`supabase init`)
+- [ ] 환경변수 설정 (`.env.local` — URL, Anon Key)
+- [ ] 기존 `src/lib/supabase.ts` + `auth-context.tsx` 연결 확인
+- [ ] 로그인/회원가입 UI (Google OAuth 또는 Magic Link)
+
+### Step 4-2. 프로젝트 저장 스키마
+- [ ] `projects` 테이블 마이그레이션 (`id`, `user_id`, `name`, `config jsonb`, `thumbnail_url`, `created_at`, `updated_at`)
+- [ ] RLS 정책 — 본인 프로젝트만 CRUD
+- [ ] Supabase Storage 버킷 생성 (썸네일 저장용)
+
+### Step 4-3. 저장/불러오기 기능
+- [ ] 현재 에디터 상태 → 서버 저장 (config JSON + 썸네일 캡처)
+- [ ] 내 프로젝트 목록 페이지 (썸네일 그리드)
+- [ ] 프로젝트 불러오기 → 에디터 상태 복원
+- [ ] 프로젝트 이름 변경 / 삭제
+- [ ] 자동 저장 (debounce, 마지막 수정 후 5초)
+
+### Step 4-4. 컬러 프리셋 서버 마이그레이션
+- [ ] `color_presets` 테이블 또는 `user_settings` jsonb 컬럼
+- [ ] 기존 localStorage 프리셋 → 서버 마이그레이션 (첫 로그인 시)
+- [ ] 로그인 상태면 서버, 비로그인이면 localStorage fallback
+
+**산출물:** Phase 4 완성. 로그인 + 프로젝트 서버 저장/관리
+
+---
+
+## Phase 5: 스토어 에셋 생성 — 앱 배포용 그래픽
+
+목표: **안드로이드/iOS 스토어 배포에 필요한 그래픽 에셋**을 템플릿 기반으로 생성
+
+### Step 5-1. 에셋 타입 정의 + 템플릿 시스템
+- [ ] 스토어 에셋 타입 정의 (Feature Graphic, 스크린샷 프레임, 프로모 배너 등)
+- [ ] 에셋 크기 규격 정리:
+  - Google Play Feature Graphic: 1024×500
+  - Google Play 스크린샷: 폰 (1080×1920), 태블릿 7" (1200×1920), 태블릿 10" (1600×2560)
+  - Google Play TV 배너: 1280×720
+  - Apple App Store 스크린샷: iPhone 6.7" (1290×2796), iPad 12.9" (2048×2732)
+  - Apple App Store 프로모: 1024×1024
+- [ ] 템플릿 데이터 구조 (배경 + 텍스트 영역 + 이미지 슬롯 + 레이아웃)
+- [ ] 에셋 에디터 라우트 (`/editor/asset`)
+
+### Step 5-2. 에셋 에디터 UI
+- [ ] 에셋 타입 선택 (플랫폼별 카테고리)
+- [ ] 템플릿 선택 UI (미리보기 카드)
+- [ ] 기존 로고 에디터 Canvas 엔진 재사용
+- [ ] 텍스트 영역 편집 (제목, 부제, 설명 등 멀티 텍스트 블록)
+- [ ] 스크린샷/이미지 삽입 슬롯 (업로드 + 배치)
+- [ ] 디바이스 프레임 오버레이 (폰/태블릿 목업)
+
+### Step 5-3. 스크린샷 프레임 + 디바이스 목업
+- [ ] 디바이스 프레임 SVG 에셋 (Pixel, Galaxy, iPhone 등)
+- [ ] 스크린샷 삽입 → 디바이스 프레임 안에 합성
+- [ ] 배경 + 캡션 텍스트 + 디바이스 목업 = 완성 에셋
+- [ ] 프레임 색상/스타일 커스터마이징
+
+### Step 5-4. 일괄 에셋 내보내기
+- [ ] 플랫폼별 필수 에셋 체크리스트 UI
+- [ ] 전체 에셋 일괄 렌더링 → ZIP 다운로드
+- [ ] 폴더 구조: `android/`, `ios/` 분리
+- [ ] Supabase에 에셋 프로젝트 저장
+
+**산출물:** Phase 5 완성. 스토어 배포용 그래픽 에셋 생성기
+
+---
+
+## Phase 6: 후순위 개선
+
+### Step 6-1. URL 공유
 - [ ] 설정을 URL 파라미터로 인코딩 (Base64 압축)
 - [ ] URL에서 설정 복원
 - [ ] 공유 버튼 (링크 복사)
 
-### Step 4-2. 추가 포맷
+### Step 6-2. 추가 포맷
 - [ ] ICO 내보내기 (Canvas → 16x16/32x32/48x48 멀티사이즈)
 - [ ] WebP 내보내기 (`canvas.toBlob('image/webp')`)
 - [ ] AVIF 내보내기 (브라우저 지원 확인 후 fallback)
 
-### Step 4-3. Supabase 연동
-- [ ] `logo_projects` 테이블 생성 (마이그레이션)
-- [ ] RLS 정책 적용
-- [ ] 로고 저장 (config jsonb + thumbnail)
-- [ ] 내 로고 목록 / 불러오기 / 삭제
+### Step 6-3. Radial 그라디언트 고급
+- [ ] Radial 그라디언트 중심점 X/Y 2D 드래그 UI
+- [ ] 반경/초점 슬라이더
 
-### Step 4-4. 접근성
+### Step 6-4. 접근성
 - [ ] 슬라이더 ARIA (`aria-label`, `aria-valuemin/max/now`)
 - [ ] 키보드 내비게이션 전체 점검
 - [ ] 스크린 리더 `aria-live` 영역
@@ -276,25 +339,21 @@
 | 단계 | 스텝 수 | 핵심 난이도 |
 |------|---------|------------|
 | **Phase 1** (MVP) ✅ | 7 스텝 | Canvas 렌더러, FittedBox, 폰트 로딩 |
-| **Phase 2** (모드 확장) | 7 스텝 (이슈 수정 포함) | 내보내기 리팩터, Text+Image 레이아웃, SVG 직접 생성 |
-| **Phase 3** (프리셋) | 4 스텝 | ZIP 생성, 2D 드래그 UI |
-| **Phase 4** (후순위) | 4 스텝 | URL 인코딩, Supabase 스키마 |
+| **Phase 2** (모드 확장) ✅ | 7 스텝 | 내보내기 리팩터, Text+Image 레이아웃, SVG 직접 생성 |
+| **Phase 3** (일괄+클립보드) | 2 스텝 | ZIP 생성, Clipboard API |
+| **Phase 4** (Supabase) | 4 스텝 | DB 스키마, RLS, 자동저장, 마이그레이션 |
+| **Phase 5** (스토어 에셋) | 4 스텝 | 템플릿 시스템, 디바이스 목업, 멀티 텍스트 블록 |
+| **Phase 6** (후순위) | 4 스텝 | URL 인코딩, ICO 생성, 접근성 |
 
 ### 의존성 그래프
 
 ```
 Phase 1 ✅
-  └→ Step 2-0 (이슈 수정) ★ Phase 2 진입 전 필수
-       ├→ Step 2-1~2-3 (이미지/SVG 모드) — 병렬 가능
-       ├→ Step 2-4 (그라디언트)
-       ├→ Step 2-5 (서브텍스트)
-       └→ Step 2-6 (SVG 내보내기)
-            └→ Phase 2 완성 ✓
-                 ├→ Step 3-1~3-2 (프리셋) — 병렬 가능
-                 ├→ Step 3-3 (일괄 내보내기)
-                 └→ Step 3-4 (Radial 고급)
-                      └→ Phase 3 완성 ✓
-                           └→ Phase 4 (후순위)
+  └→ Phase 2 ✅
+       └→ Phase 3 (일괄 내보내기 + 클립보드)
+            └→ Phase 4 (Supabase 연동) ★ 서버 저장 기반
+                 ├→ Phase 5 (스토어 에셋) — Phase 4 저장 기능 활용
+                 └→ Phase 6 (후순위) — 독립적, 언제든 가능
 ```
 
 ### 핵심 리스크
@@ -305,6 +364,8 @@ Phase 1 ✅
 | FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 반영 완료 |
 | Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 전체 한 번에 로드 방식 사용 중, lazy load 개선 가능 |
 | SVG 내보내기 폰트 임베딩 | Step 2-6 | `@import` URL 방식 우선, Base64 임베딩은 후순위 |
-| ICO 멀티사이즈 생성 | Step 4-2 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
+| Supabase RLS + 자동저장 충돌 | Step 4-3 | debounce + optimistic update + conflict resolution |
+| 디바이스 목업 SVG 라이선스 | Step 5-3 | 자체 제작 또는 MIT 라이선스 에셋 사용 |
+| 스토어 에셋 규격 변경 | Step 5-1 | Google/Apple 공식 문서 기준, 업데이트 대응 필요 |
+| ICO 멀티사이즈 생성 | Step 6-2 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
 | Canvas 큰 배율(4x) 메모리 | Step 1-6 | 4096x4096 이상 시 경고 필요 (미구현) |
-| 내보내기 품질 (흐림/투명/체커보드) | Step 2-0 | offscreen Canvas 별도 렌더링으로 전환 필요 |
