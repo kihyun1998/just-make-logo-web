@@ -1,95 +1,131 @@
 # Just Make Logo - 구현 로드맵
 
 > 기준 문서: `docs/SPEC_TEXT_LOGO.md`
-> 현재 상태: 레이아웃/인증/i18n/테마 구현 완료, 로고 에디터 미착수
+> 현재 상태: **Phase 1 구현 완료** (일부 미비사항 있음)
 
 ---
 
-## Phase 1: MVP — Text Only 로고 (핵심)
+## Phase 1: MVP — Text Only 로고 (핵심) ✅
 
 목표: **텍스트 입력 → 실시간 미리보기 → PNG/JPG 다운로드**가 되는 최소 제품
 
-### Step 1-1. 프로젝트 기반 세팅
-- [ ] zustand + immer + zustand-temporal 설치 및 스토어 구조 세팅
-- [ ] `LogoState` 타입 정의 + `DEFAULT_LOGO_STATE` 상수
-- [ ] `useLogoStore` zustand 스토어 생성 (temporal 미들웨어 포함)
-- [ ] react-colorful 설치
-- [ ] 에디터 페이지 라우트 생성 (`/app/editor/page.tsx`)
-- [ ] 에디터 레이아웃 뼈대 (좌측 프리뷰 3 : 우측 패널 1, 모바일 세로 스택)
+### Step 1-1. 프로젝트 기반 세팅 ✅
+- [x] zustand + immer + zundo 설치 및 스토어 구조 세팅
+- [x] `LogoState` 타입 정의 + `DEFAULT_LOGO_STATE` 상수
+- [x] `useLogoStore` zustand 스토어 생성 (temporal 미들웨어 포함)
+- [x] react-colorful 설치
+- [x] 에디터 페이지 라우트 생성 (`/app/editor/page.tsx`)
+- [x] 에디터 레이아웃 뼈대 (좌측 프리뷰 3 : 우측 패널 1, 모바일 세로 스택)
 
-**산출물:** 빈 에디터 페이지가 반응형으로 뜸, 상태 스토어 동작
+### Step 1-2. Canvas 렌더링 엔진 ✅
+- [x] `<LogoCanvas>` 컴포넌트 — Canvas 기반 실시간 프리뷰
+- [x] Canvas 렌더러 (배경, 텍스트, FittedBox, 패딩 적용)
+- [x] 체커보드 패턴 (투명 배경 표시)
+- [x] 종횡비 유지 + 크기 배지 표시 (W x H)
+- [x] `document.fonts.ready` 대기 후 렌더링
 
-### Step 1-2. Canvas 렌더링 엔진
-- [ ] `<LogoCanvas>` 컴포넌트 — Canvas 기반 실시간 프리뷰
-- [ ] Canvas 렌더러 핵심 함수: `renderLogo(ctx, state, width, height)`
-  - 배경 그리기 (단색, 투명)
-  - 텍스트 그리기 (단일 줄)
-  - FittedBox 로직 (가용 공간에 텍스트 자동 스케일링)
-  - 패딩 적용 (캔버스 패딩, 텍스트 패딩)
-- [ ] 체커보드 패턴 (투명 배경 표시)
-- [ ] 종횡비 유지 + 크기 배지 표시 (W x H)
-- [ ] `document.fonts.ready` 대기 후 렌더링
+### Step 1-3. 텍스트 컨트롤 패널 ✅
+- [x] 모드 선택 Chip UI (4가지, Text Only만 활성)
+- [x] 텍스트 입력 필드 (1~3줄 전환 + 각 줄 별도 입력)
+- [x] 폰트 드롭다운 (39종, 각 폰트명을 해당 폰트로 렌더링)
+- [x] Google Fonts CSS 동적 로드 (`<link>` 삽입)
+- [x] 폰트 Weight 선택 (폰트별 지원 weight만 표시)
+- [x] 텍스트 색상 컬러 피커 (react-colorful)
+- [x] 텍스트 패딩 슬라이더 (0~90%, 1% 단위) ← 5%에서 1%로 변경
 
-**산출물:** Canvas에 텍스트가 그려지고, 상태 변경 시 실시간 업데이트
+### Step 1-4. 배경 컨트롤 패널 ✅
+- [x] 배경 형태 선택 (사각형 / 원형)
+- [x] 배경색 컬러 피커
+- [x] 퀵 프리셋 컬러 6종 (흰/검/빨/파/노/초)
+- [x] 투명 배경 토글
+- [x] 캔버스 패딩 슬라이더 (0~90%, 1% 단위) ← 5%에서 1%로 변경
+- [x] 테두리 둥글기 슬라이더 (0~100px, 사각형일 때만)
+- [x] Canvas 렌더러에 배경 모양 반영 (rect + borderRadius / circle 클리핑)
 
-### Step 1-3. 텍스트 컨트롤 패널
-- [ ] 모드 선택 Chip UI (4가지, 우선 Text Only만 활성)
-- [ ] 텍스트 입력 필드 (1~3줄 전환 + 각 줄 별도 입력)
-- [ ] 폰트 드롭다운 (39종, 각 폰트명을 해당 폰트로 렌더링)
-- [ ] Google Fonts CSS 동적 로드 (`<link>` 삽입)
-- [ ] 폰트 Weight 선택 (폰트별 지원 weight만 표시)
-- [ ] 텍스트 색상 컬러 피커 (react-colorful)
-- [ ] 텍스트 패딩 슬라이더 (0~90%, 5% 단위)
+### Step 1-5. 텍스트 스타일 + 효과 ✅
+- [x] 글자 간격 (letter-spacing) 슬라이더
+- [x] 줄 간격 (line-height) 슬라이더
+- [x] 멀티라인 Canvas 렌더링 (수동 줄 분리 + 개별 fillText)
+- [x] 텍스트 그림자 (Shadow) — ON/OFF, 색상, offsetX/Y, blur
+- [x] 텍스트 외곽선 (Stroke) — ON/OFF, 색상, 두께
+- [x] Canvas 렌더러에 shadow/stroke 반영
 
-**산출물:** 텍스트 입력/폰트/색상 변경 → Canvas 실시간 반영
+### Step 1-6. 크기 프리셋 + 내보내기 ✅
+- [x] 크기 프리셋 UI (일반 11종 드롭다운 + Custom)
+- [x] Custom 크기 직접 입력 (W x H)
+- [x] PNG 내보내기 (`canvas.toBlob('image/png')`)
+- [x] JPG 내보내기 (`canvas.toBlob('image/jpeg', 0.95)`)
+- [x] 스케일 배율 선택 (1x/2x/3x/4x)
+- [x] 파일명 규칙: `logo_WxH[@scale].ext`
+- [ ] 내보내기 버튼 헤더에 고정 배치 → 현재 패널 하단에 배치
 
-### Step 1-4. 배경 컨트롤 패널
-- [ ] 배경 형태 선택 (사각형 / 원형)
-- [ ] 배경색 컬러 피커
-- [ ] 퀵 프리셋 컬러 6종 (흰/검/빨/파/노/초)
-- [ ] 투명 배경 토글
-- [ ] 캔버스 패딩 슬라이더 (0~90%, 5% 단위)
-- [ ] 테두리 둥글기 슬라이더 (0~100px, 사각형일 때만)
-- [ ] Canvas 렌더러에 배경 모양 반영 (rect + borderRadius / circle 클리핑)
+### Step 1-7. Undo/Redo + 다크모드 ✅ (일부 미비)
+- [x] zundo temporal Undo/Redo 연결
+- [x] 키보드 단축키: Ctrl+Z (Undo), Ctrl+Shift+Z / Ctrl+Y (Redo)
+- [ ] 슬라이더 debounce (드래그 종료 시점에 히스토리 커밋) → 미구현
+- [ ] 텍스트 입력 debounce (300ms) → 미구현
+- [ ] 리셋 버튼 UI → 스토어에 `reset()` 액션만 있고 UI 버튼 없음
+- [x] 다크모드 (shadcn/ui 테마 토큰 사용으로 기본 대응)
 
-**산출물:** 배경 모양/색상/패딩/라운드 변경 → Canvas 실시간 반영
+### Phase 1 추가 구현 (로드맵 외)
+- [x] FittedBox 단일 줄에서 lineHeight 무시 → 텍스트가 캔버스 폭을 꽉 채움
+- [x] textPadding 기본값 10% → 0%로 변경
+- [x] Italic / Uppercase / Underline 토글 UI (Phase 2 항목을 앞당김)
+- [x] Ctrl+Y Redo 대체 키바인딩
+- [x] Input 필드에서 키보드 단축키 무시
+- [x] Export에서 SVG/ICO 비활성 표시 (Phase 2 안내)
+- [x] temporal equality 커스텀 비교 (exportFormat/Scale 변경 시 히스토리 제외)
+- [x] Export output 사이즈(W*scale x H*scale) 표시
+- [x] i18n hydration mismatch 수정 시도 (아직 불완전, 아래 이슈 참조)
 
-### Step 1-5. 텍스트 스타일 + 효과
-- [ ] 글자 간격 (letter-spacing) 슬라이더
-- [ ] 줄 간격 (line-height) 슬라이더
-- [ ] 멀티라인 Canvas 렌더링 (수동 줄 분리 + 개별 fillText)
-- [ ] 텍스트 그림자 (Shadow) — ON/OFF, 색상, offsetX/Y, blur
-- [ ] 텍스트 외곽선 (Stroke) — ON/OFF, 색상, 두께
-- [ ] Canvas 렌더러에 shadow/stroke 반영
+---
 
-**산출물:** 그림자/외곽선이 적용된 텍스트가 Canvas에 렌더링
+## Phase 1 알려진 이슈 (수정 필요)
 
-### Step 1-6. 크기 프리셋 + 내보내기
-- [ ] 크기 프리셋 UI (일반 12종 드롭다운/그리드)
-- [ ] Custom 크기 직접 입력 (W x H)
-- [ ] PNG 내보내기 (`canvas.toBlob('image/png')`)
-- [ ] JPG 내보내기 (`canvas.toBlob('image/jpeg', 0.95)`)
-- [ ] 스케일 배율 선택 (1x/2x/3x/4x) — Canvas 크기 곱셈 후 내보내기
-- [ ] 파일명 규칙: `logo_WxH[@scale].ext`
-- [ ] 내보내기 버튼 헤더에 고정 배치
+### Critical
+| # | 이슈 | 파일 |
+|---|------|------|
+| C1 | **내보내기가 프리뷰 캔버스를 스케일업 → 이미지 흐림 + 체커보드 포함**. offscreen Canvas에서 별도 렌더링해야 함 | `export-panel.tsx` |
+| C2 | **JPG 내보내기 시 투명 배경이 검은색** (JPEG은 알파 미지원). 흰색 배경 fallback 필요 | `export-panel.tsx` |
+| C3 | **전체 스토어 구독 → 과도한 리렌더**. `useLogoStore(selector)` 패턴으로 변경 필요 | 모든 컴포넌트 |
 
-**산출물:** 원하는 크기/포맷/배율로 로고 다운로드 가능
+### Medium
+| # | 이슈 | 파일 |
+|---|------|------|
+| M1 | **폰트 로딩 레이스 컨디션**. 폰트 변경 시 `document.fonts.ready`가 즉시 resolve되어 fallback 폰트로 렌더링될 수 있음 | `logo-canvas.tsx` |
+| M2 | **`underline` Canvas 미구현**. UI 토글 존재하나 Canvas에서 밑줄을 그리지 않음 | `logo-canvas.tsx` |
+| M3 | **`fitText`에서 uppercase 미반영**. 원본 텍스트로 측정하지만 렌더링은 대문자 → 폭 불일치로 텍스트 넘침 가능 | `logo-canvas.tsx` |
+| M4 | **멀티라인 Y좌표 계산 불일치**. `lineHeight < 1.0`일 때 줄 겹침, 수직 센터링 어긋남 | `logo-canvas.tsx` |
+| M5 | **i18n hydration 여전히 불완전**. `setTimeout(0)`이 hydration 보장 못함. `useEffect`로 변경 필요 | `i18n/index.ts` |
+| M6 | **immer+zundo equality에서 `JSON.stringify` 비교** → 성능 우려 | `logo-store.ts` |
 
-### Step 1-7. Undo/Redo + 다크모드
-- [ ] zustand-temporal Undo/Redo 연결
-- [ ] 키보드 단축키: Ctrl+Z (Undo), Ctrl+Shift+Z (Redo)
-- [ ] 슬라이더 debounce (드래그 종료 시점에 히스토리 커밋)
-- [ ] 텍스트 입력 debounce (300ms)
-- [ ] 리셋 버튼 (DEFAULT_LOGO_STATE로 복원)
-- [ ] 다크모드에서 에디터 UI 정상 표시 확인
+### Low
+| # | 이슈 | 파일 |
+|---|------|------|
+| L1 | `URL.revokeObjectURL` 즉시 호출 → 일부 브라우저에서 다운로드 실패 가능 | `export-panel.tsx` |
+| L2 | `drawTextWithSpacing`에서 shadow가 문자별 중복 적용 | `logo-canvas.tsx` |
+| L3 | padding 합산 50%+ 시 빈 캔버스가 되지만 사용자 피드백 없음 | `logo-canvas.tsx` |
 
-**산출물:** Phase 1 완성. Text Only 로고를 만들어서 PNG/JPG로 다운로드 가능
+### Dead Code (Phase 2용으로 미리 정의, 당장 문제 없음)
+- `src/data/fonts.ts` → `buildGoogleFontUrl()` 미사용
+- `src/data/presets.ts` → `GRADIENT_PRESETS`, `DEVICE_GROUPS` 미사용
+- `src/types/logo.ts` → `ColorPreset` 미사용
 
 ---
 
 ## Phase 2: 이미지/SVG 모드 + 그라디언트
 
 목표: **4가지 모드 전부 동작** + 그라디언트 배경 + SVG 내보내기
+
+### Step 2-0. Phase 1 이슈 수정 (Phase 2 진입 전 필수)
+- [ ] C1+C2+체커보드: 내보내기를 offscreen Canvas 별도 렌더링으로 전환
+- [ ] C3: 각 컴포넌트에서 `useLogoStore(selector)` 패턴으로 변경
+- [ ] M1: 폰트 변경 시 `FontFaceSet.load()` 후 렌더링
+- [ ] M3: `fitText`에서 uppercase 상태 반영하여 측정
+- [ ] M4: 멀티라인 Y좌표 계산 통일
+- [ ] M5: i18n 언어 전환을 `useEffect`로 이동
+- [ ] 리셋 버튼 UI 추가
+- [ ] 슬라이더/텍스트 입력 debounce 추가
 
 ### Step 2-1. Image Only 모드
 - [ ] 이미지 업로드 UI (파일 피커 + 드래그 앤 드롭)
@@ -122,7 +158,7 @@
 - [ ] 서브텍스트(슬로건) 입력 + 독립 설정 (폰트/크기/색상)
 - [ ] 서브텍스트 위치 (above/below)
 - [ ] 텍스트 회전 (0~360°)
-- [ ] Italic, Uppercase, Underline 토글
+- [ ] Canvas에 underline 수동 렌더링
 - [ ] Canvas 렌더러에 서브텍스트 + 회전 반영
 
 ### Step 2-6. SVG + ICO 내보내기
@@ -196,41 +232,36 @@
 
 | 단계 | 스텝 수 | 핵심 난이도 |
 |------|---------|------------|
-| **Phase 1** (MVP) | 7 스텝 | Canvas 렌더러, FittedBox, 폰트 로딩 |
-| **Phase 2** (모드 확장) | 6 스텝 | Text+Image 레이아웃, SVG 직접 생성, ICO 변환 |
+| **Phase 1** (MVP) ✅ | 7 스텝 | Canvas 렌더러, FittedBox, 폰트 로딩 |
+| **Phase 2** (모드 확장) | 7 스텝 (이슈 수정 포함) | 내보내기 리팩터, Text+Image 레이아웃, SVG 직접 생성 |
 | **Phase 3** (프리셋) | 4 스텝 | ZIP 생성, 2D 드래그 UI |
 | **Phase 4** (후순위) | 4 스텝 | URL 인코딩, Supabase 스키마 |
 
 ### 의존성 그래프
 
 ```
-Step 1-1 (기반 세팅)
-  └→ Step 1-2 (Canvas 엔진) ★ 가장 중요
-       ├→ Step 1-3 (텍스트 패널)
-       ├→ Step 1-4 (배경 패널)
-       ├→ Step 1-5 (텍스트 효과)
-       └→ Step 1-6 (내보내기)
-            └→ Step 1-7 (Undo/Redo)
-                 └→ Phase 1 완성 ✓
-                      ├→ Step 2-1~2-3 (이미지/SVG 모드) — 병렬 가능
-                      ├→ Step 2-4 (그라디언트)
-                      ├→ Step 2-5 (서브텍스트)
-                      └→ Step 2-6 (SVG/ICO 내보내기)
-                           └→ Phase 2 완성 ✓
-                                ├→ Step 3-1~3-2 (프리셋) — 병렬 가능
-                                ├→ Step 3-3 (일괄 내보내기)
-                                └→ Step 3-4 (Radial 고급)
-                                     └→ Phase 3 완성 ✓
-                                          └→ Phase 4 (후순위)
+Phase 1 ✅
+  └→ Step 2-0 (이슈 수정) ★ Phase 2 진입 전 필수
+       ├→ Step 2-1~2-3 (이미지/SVG 모드) — 병렬 가능
+       ├→ Step 2-4 (그라디언트)
+       ├→ Step 2-5 (서브텍스트)
+       └→ Step 2-6 (SVG/ICO 내보내기)
+            └→ Phase 2 완성 ✓
+                 ├→ Step 3-1~3-2 (프리셋) — 병렬 가능
+                 ├→ Step 3-3 (일괄 내보내기)
+                 └→ Step 3-4 (Radial 고급)
+                      └→ Phase 3 완성 ✓
+                           └→ Phase 4 (후순위)
 ```
 
 ### 핵심 리스크
 
 | 리스크 | 영향 | 대응 |
 |--------|------|------|
-| Canvas 멀티라인 + letter-spacing 크로스브라우저 | Step 1-5 | Safari fallback 문자별 렌더링 준비 |
-| FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색으로 최적 크기 계산 |
-| Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 선택 시점에 lazy load, 초기에는 시스템 폰트 fallback |
+| Canvas 멀티라인 + letter-spacing 크로스브라우저 | Step 1-5 | Safari fallback 문자별 렌더링 ✅ 구현됨 |
+| FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 미반영 이슈 남음 |
+| Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 전체 한 번에 로드 방식 사용 중, lazy load 개선 가능 |
 | SVG 내보내기 폰트 임베딩 | Step 2-6 | `@import` URL 방식 우선, Base64 임베딩은 후순위 |
 | ICO 멀티사이즈 생성 | Step 2-6 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
-| Canvas 큰 배율(4x) 메모리 | Step 1-6 | 4096x4096 이상 시 경고, maxCanvasSize 체크 |
+| Canvas 큰 배율(4x) 메모리 | Step 1-6 | 4096x4096 이상 시 경고 필요 (미구현) |
+| 내보내기 품질 (흐림/투명/체커보드) | Step 2-0 | offscreen Canvas 별도 렌더링으로 전환 필요 |
