@@ -51,7 +51,15 @@ export function renderLogo(
   const areaW = width - areaX * 2
   const areaH = height - areaY * 2
 
-  if (areaW <= 0 || areaH <= 0) return
+  if (areaW <= 0 || areaH <= 0) {
+    // Show feedback when padding is too large
+    ctx.fillStyle = '#999999'
+    ctx.font = `${Math.max(12, width * 0.03)}px sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('Too much padding', width / 2, height / 2)
+    return
+  }
 
   // Get text lines
   const lines = getTextLines(state)

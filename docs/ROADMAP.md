@@ -79,31 +79,31 @@
 
 ---
 
-## Phase 1 알려진 이슈 (수정 필요)
+## Phase 1 알려진 이슈 — 모두 해결 ✅
 
-### Critical
-| # | 이슈 | 파일 |
+### Critical (3/3 해결)
+| # | 이슈 | 해결 |
 |---|------|------|
-| C1 | **내보내기가 프리뷰 캔버스를 스케일업 → 이미지 흐림 + 체커보드 포함**. offscreen Canvas에서 별도 렌더링해야 함 | `export-panel.tsx` |
-| C2 | **JPG 내보내기 시 투명 배경이 검은색** (JPEG은 알파 미지원). 흰색 배경 fallback 필요 | `export-panel.tsx` |
-| C3 | **전체 스토어 구독 → 과도한 리렌더**. `useLogoStore(selector)` 패턴으로 변경 필요 | 모든 컴포넌트 |
+| C1 | 내보내기 흐림 + 체커보드 포함 | ✅ offscreen Canvas + `renderLogo()` 공용 함수로 별도 렌더링 |
+| C2 | JPG 투명배경 검은색 | ✅ `jpgBackground` 옵션 → 흰색 배경 fallback |
+| C3 | 전체 스토어 구독 리렌더 | ✅ 모든 패널에 `useLogoStore(selector)` 적용 |
 
-### Medium
-| # | 이슈 | 파일 |
+### Medium (6/6 해결)
+| # | 이슈 | 해결 |
 |---|------|------|
-| M1 | **폰트 로딩 레이스 컨디션**. 폰트 변경 시 `document.fonts.ready`가 즉시 resolve되어 fallback 폰트로 렌더링될 수 있음 | `logo-canvas.tsx` |
-| M2 | **`underline` Canvas 미구현**. UI 토글 존재하나 Canvas에서 밑줄을 그리지 않음 | `logo-canvas.tsx` |
-| M3 | **`fitText`에서 uppercase 미반영**. 원본 텍스트로 측정하지만 렌더링은 대문자 → 폭 불일치로 텍스트 넘침 가능 | `logo-canvas.tsx` |
-| M4 | **멀티라인 Y좌표 계산 불일치**. `lineHeight < 1.0`일 때 줄 겹침, 수직 센터링 어긋남 | `logo-canvas.tsx` |
-| M5 | **i18n hydration 여전히 불완전**. `setTimeout(0)`이 hydration 보장 못함. `useEffect`로 변경 필요 | `i18n/index.ts` |
-| M6 | **immer+zundo equality에서 `JSON.stringify` 비교** → 성능 우려 | `logo-store.ts` |
+| M1 | 폰트 로딩 레이스 컨디션 | ✅ `document.fonts.load(fontSpec)` 명시적 로드 후 렌더링 |
+| M2 | underline 미구현 | ✅ `renderLogo`에서 수동 밑줄 그리기 |
+| M3 | fitText uppercase 미반영 | ✅ `displayLines = uppercase ? toUpperCase()` 측정 시 적용 |
+| M4 | 멀티라인 Y좌표 불일치 | ✅ `lineStep` 통일, totalHeight와 개별 Y 계산 일치 |
+| M5 | i18n hydration 불완전 | ✅ `useEffect` + `detectAndApplyLanguage()` 패턴 |
+| M6 | JSON.stringify equality | ✅ 제거, `handleSet` 300ms debounce로 대체 |
 
-### Low
-| # | 이슈 | 파일 |
+### Low (3/3 해결)
+| # | 이슈 | 해결 |
 |---|------|------|
-| L1 | `URL.revokeObjectURL` 즉시 호출 → 일부 브라우저에서 다운로드 실패 가능 | `export-panel.tsx` |
-| L2 | `drawTextWithSpacing`에서 shadow가 문자별 중복 적용 | `logo-canvas.tsx` |
-| L3 | padding 합산 50%+ 시 빈 캔버스가 되지만 사용자 피드백 없음 | `logo-canvas.tsx` |
+| L1 | revokeObjectURL 즉시 호출 | ✅ `setTimeout(3000)` 지연 |
+| L2 | shadow 문자별 중복 | ✅ shadow 한번 적용 후 개별 문자는 shadow 없이 |
+| L3 | padding 초과 시 피드백 없음 | ✅ "Too much padding" 텍스트 표시 |
 
 ### Dead Code (Phase 2용으로 미리 정의, 당장 문제 없음)
 - `src/data/fonts.ts` → `buildGoogleFontUrl()` 미사용
@@ -116,15 +116,15 @@
 
 목표: **4가지 모드 전부 동작** + 그라디언트 배경 + SVG 내보내기
 
-### Step 2-0. Phase 1 이슈 수정 (Phase 2 진입 전 필수)
-- [ ] C1+C2+체커보드: 내보내기를 offscreen Canvas 별도 렌더링으로 전환
-- [ ] C3: 각 컴포넌트에서 `useLogoStore(selector)` 패턴으로 변경
-- [ ] M1: 폰트 변경 시 `FontFaceSet.load()` 후 렌더링
-- [ ] M3: `fitText`에서 uppercase 상태 반영하여 측정
-- [ ] M4: 멀티라인 Y좌표 계산 통일
-- [ ] M5: i18n 언어 전환을 `useEffect`로 이동
-- [x] 리셋 버튼 UI 추가 ✅ (Phase 1에서 해결)
-- [x] 히스토리 debounce 추가 ✅ (Phase 1에서 해결)
+### Step 2-0. Phase 1 이슈 수정 ✅ (Phase 1에서 모두 해결)
+- [x] C1+C2+체커보드: offscreen Canvas 별도 렌더링
+- [x] C3: `useLogoStore(selector)` 패턴 적용
+- [x] M1: `FontFaceSet.load()` 후 렌더링
+- [x] M3: `fitText`에서 uppercase 반영
+- [x] M4: 멀티라인 Y좌표 계산 통일
+- [x] M5: i18n `useEffect` 패턴
+- [x] 리셋 버튼 UI
+- [x] 히스토리 debounce
 
 ### Step 2-1. Image Only 모드
 - [ ] 이미지 업로드 UI (파일 피커 + 드래그 앤 드롭)
