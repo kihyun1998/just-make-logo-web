@@ -68,22 +68,22 @@ export function LogoCanvas() {
   const { canvasWidth, canvasHeight } = state
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative rounded-lg border border-border shadow-md">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-2">
+      <div className="relative max-h-[calc(100%-2rem)] max-w-full rounded-lg border border-border shadow-md">
         <canvas
           ref={canvasRef}
           data-logo-canvas
           style={{
             maxWidth: '100%',
-            maxHeight: 'calc(100vh - 12rem)',
+            maxHeight: '100%',
             width: 'auto',
             height: 'auto',
             aspectRatio: `${canvasWidth}/${canvasHeight}`,
           }}
-          className="rounded-lg"
+          className="block rounded-lg"
         />
       </div>
-      <span className="text-xs text-muted-foreground">
+      <span className="shrink-0 text-xs text-muted-foreground">
         {canvasWidth} x {canvasHeight}
       </span>
     </div>
