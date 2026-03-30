@@ -10,6 +10,7 @@ import { ImagePanel } from './panels/image-panel'
 import { SvgPanel } from './panels/svg-panel'
 import { BackgroundPanel } from './panels/background-panel'
 import { GradientPanel } from './panels/gradient-panel'
+import { ColorPresetsPanel } from './panels/color-presets-panel'
 import { ExportPanel } from './panels/export-panel'
 import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -89,6 +90,11 @@ export function ControlPanel() {
 
       {/* Gradient panel */}
       <GradientPanel />
+
+      <hr className="border-border" />
+
+      {/* Color presets */}
+      <ColorPresetsPanel />
 
       <hr className="border-border" />
 
