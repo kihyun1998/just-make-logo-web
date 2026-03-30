@@ -160,12 +160,11 @@
 - [x] Canvas에 underline 수동 렌더링
 - [x] Canvas 렌더러에 서브텍스트 + 회전 반영
 
-### Step 2-6. SVG + ICO 내보내기 (부분 완료)
+### Step 2-6. SVG 내보내기 + 디바이스 프리셋 ✅
 - [x] SVG 내보내기: `<svg>` + `<text>` + 도형 직접 생성
 - [x] SVG 폰트 임베딩 (Google Fonts `@import` URL)
 - [x] SVG 그라디언트 (`<linearGradient>`, `<radialGradient>`)
 - [x] SVG 클리핑 패스 (원형, 둥근 사각형)
-- [ ] ICO 내보내기 → Phase 3 이후로 연기
 - [x] 디바이스별 크기 프리셋 UI (Android/iOS/Web/macOS/Windows 아코디언)
 
 ### Phase 2 추가 구현 (로드맵 외)
@@ -289,7 +288,7 @@ Phase 1 ✅
        ├→ Step 2-1~2-3 (이미지/SVG 모드) — 병렬 가능
        ├→ Step 2-4 (그라디언트)
        ├→ Step 2-5 (서브텍스트)
-       └→ Step 2-6 (SVG/ICO 내보내기)
+       └→ Step 2-6 (SVG 내보내기)
             └→ Phase 2 완성 ✓
                  ├→ Step 3-1~3-2 (프리셋) — 병렬 가능
                  ├→ Step 3-3 (일괄 내보내기)
@@ -306,6 +305,6 @@ Phase 1 ✅
 | FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 미반영 이슈 남음 |
 | Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 전체 한 번에 로드 방식 사용 중, lazy load 개선 가능 |
 | SVG 내보내기 폰트 임베딩 | Step 2-6 | `@import` URL 방식 우선, Base64 임베딩은 후순위 |
-| ICO 멀티사이즈 생성 | Step 2-6 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
+| ICO 멀티사이즈 생성 | Step 4-2 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
 | Canvas 큰 배율(4x) 메모리 | Step 1-6 | 4096x4096 이상 시 경고 필요 (미구현) |
 | 내보내기 품질 (흐림/투명/체커보드) | Step 2-0 | offscreen Canvas 별도 렌더링으로 전환 필요 |
