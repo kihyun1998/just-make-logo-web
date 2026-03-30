@@ -291,6 +291,75 @@ function DevicePresets() {
   )
 }
 
+/**
+ * Shared helper: load fonts + image, render to offscreen canvas, return PNG blob.
+ * Used by ExportButton, CopyButton (and batch-export has its own version).
+ */
+async function renderToBlob(
+  state: ReturnType<typeof useLogoStore.getState>,
+  options?: { mimeType?: string; quality?: number; jpgBackground?: boolean },
+): Promise<Blob | null> {
+  const fontStyle = state.italic ? 'italic ' : ''
+  await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
+  if (state.subText.enabled) {
+    await document.fonts.load(`${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`)
+  }
+
+  let image: HTMLImageElement | null = null
+  const imgSrc = state.mode === 'svgOnly' && state.svgContent
+    ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
+    : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
+
+  if (imgSrc) {
+    image = await new Promise<HTMLImageElement | null>((resolve) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => resolve(null)
+      img.src = imgSrc
+    })
+    if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
+  }
+
+  const { canvasWidth, canvasHeight, exportScale } = state
+  const w = canvasWidth * exportScale
+  const h = canvasHeight * exportScale
+
+  const offscreen = document.createElement('canvas')
+  offscreen.width = w
+  offscreen.height = h
+  const ctx = offscreen.getContext('2d')
+  if (!ctx) return null
+
+  ctx.scale(exportScale, exportScale)
+
+  renderLogo(ctx, state, canvasWidth, canvasHeight, {
+    checkerboard: false,
+    jpgBackground: options?.jpgBackground ?? false,
+    image,
+  })
+
+  return new Promise((resolve) => {
+    offscreen.toBlob(
+      (blob) => {
+        offscreen.width = 0
+        offscreen.height = 0
+        resolve(blob)
+      },
+      options?.mimeType ?? 'image/png',
+      options?.quality,
+    )
+  })
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 3000)
+}
+
 function ExportButton() {
   const exportFormat = useLogoStore((s) => s.exportFormat)
   const exportingRef = useRef(false)
@@ -306,84 +375,22 @@ function ExportButton() {
       if (state.exportFormat === 'svg') {
         const svgString = generateSvg(state)
         const blob = new Blob([svgString], { type: 'image/svg+xml' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `logo_${state.canvasWidth}x${state.canvasHeight}.svg`
-        a.click()
-        setTimeout(() => URL.revokeObjectURL(url), 3000)
+        downloadBlob(blob, `logo_${state.canvasWidth}x${state.canvasHeight}.svg`)
         return
       }
 
-      // Raster export (PNG/JPG) — ensure fonts are loaded first
-      const fontStyle = state.italic ? 'italic ' : ''
-      await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
-      if (state.subText.enabled) {
-        await document.fonts.load(`${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`)
-      }
-
-      const { canvasWidth, canvasHeight, exportScale } = state
-
-      // Load image if needed for raster export
-      let image: HTMLImageElement | null = null
-      const imgSrc = state.mode === 'svgOnly' && state.svgContent
-        ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
-        : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
-
-      if (imgSrc) {
-        image = await new Promise<HTMLImageElement | null>((resolve) => {
-          const img = new Image()
-          img.onload = () => resolve(img)
-          img.onerror = () => resolve(null)
-          img.src = imgSrc
-        })
-        if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
-      }
-
-      const w = canvasWidth * exportScale
-      const h = canvasHeight * exportScale
-
-      const offscreen = document.createElement('canvas')
-      offscreen.width = w
-      offscreen.height = h
-      const ctx = offscreen.getContext('2d')
-      if (!ctx) return
-
-      ctx.scale(exportScale, exportScale)
-
       const isJpg = state.exportFormat === 'jpg'
-      renderLogo(ctx, state, canvasWidth, canvasHeight, {
-        checkerboard: false,
+      const blob = await renderToBlob(state, {
+        mimeType: isJpg ? 'image/jpeg' : 'image/png',
+        quality: isJpg ? 0.95 : undefined,
         jpgBackground: isJpg && state.isTransparent,
-        image,
       })
 
-      const mimeType = isJpg ? 'image/jpeg' : 'image/png'
-      const quality = isJpg ? 0.95 : undefined
-      const ext = isJpg ? 'jpg' : 'png'
-      const scaleSuffix = exportScale > 1 ? `@${exportScale}x` : ''
-      const fileName = `logo_${canvasWidth}x${canvasHeight}${scaleSuffix}.${ext}`
-
-      await new Promise<void>((resolve) => {
-        offscreen.toBlob(
-          (blob) => {
-            if (blob) {
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = fileName
-              a.click()
-              setTimeout(() => URL.revokeObjectURL(url), 3000)
-            }
-            // Free pixel buffer
-            offscreen.width = 0
-            offscreen.height = 0
-            resolve()
-          },
-          mimeType,
-          quality,
-        )
-      })
+      if (blob) {
+        const ext = isJpg ? 'jpg' : 'png'
+        const scaleSuffix = state.exportScale > 1 ? `@${state.exportScale}x` : ''
+        downloadBlob(blob, `logo_${state.canvasWidth}x${state.canvasHeight}${scaleSuffix}.${ext}`)
+      }
     } finally {
       exportingRef.current = false
     }
@@ -399,7 +406,7 @@ function ExportButton() {
 
 function CopyButton() {
   const copyingRef = useRef(false)
-  const [copied, setCopied] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'copied' | 'error'>('idle')
 
   const handleCopy = async () => {
     if (copyingRef.current) return
@@ -407,71 +414,39 @@ function CopyButton() {
 
     try {
       const state = useLogoStore.getState()
-      const { canvasWidth, canvasHeight, exportScale } = state
-
-      // Ensure fonts are loaded
-      const fontStyle = state.italic ? 'italic ' : ''
-      await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
-      if (state.subText.enabled) {
-        await document.fonts.load(`${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`)
-      }
-
-      // Load image if needed
-      let image: HTMLImageElement | null = null
-      const imgSrc = state.mode === 'svgOnly' && state.svgContent
-        ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
-        : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
-
-      if (imgSrc) {
-        image = await new Promise<HTMLImageElement | null>((resolve) => {
-          const img = new Image()
-          img.onload = () => resolve(img)
-          img.onerror = () => resolve(null)
-          img.src = imgSrc
-        })
-        if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
-      }
-
-      const w = canvasWidth * exportScale
-      const h = canvasHeight * exportScale
-
-      const offscreen = document.createElement('canvas')
-      offscreen.width = w
-      offscreen.height = h
-      const ctx = offscreen.getContext('2d')
-      if (!ctx) return
-
-      ctx.scale(exportScale, exportScale)
-
-      renderLogo(ctx, state, canvasWidth, canvasHeight, {
-        checkerboard: false,
-        jpgBackground: false,
-        image,
-      })
-
-      const blob = await new Promise<Blob | null>((resolve) => {
-        offscreen.toBlob((b) => {
-          offscreen.width = 0
-          offscreen.height = 0
-          resolve(b)
-        }, 'image/png')
-      })
+      const blob = await renderToBlob(state)
 
       if (blob) {
         await navigator.clipboard.write([
           new ClipboardItem({ 'image/png': blob }),
         ])
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        setStatus('copied')
+        setTimeout(() => setStatus('idle'), 2000)
       }
+    } catch {
+      setStatus('error')
+      setTimeout(() => setStatus('idle'), 2000)
     } finally {
       copyingRef.current = false
     }
   }
 
   return (
-    <Button onClick={handleCopy} variant="outline" size="icon" className="shrink-0" title="Copy to clipboard">
-      {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+    <Button
+      onClick={handleCopy}
+      variant="outline"
+      size="icon"
+      className="shrink-0"
+      aria-label="Copy to clipboard"
+      title={status === 'error' ? 'Copy failed' : 'Copy to clipboard'}
+    >
+      {status === 'copied' ? (
+        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+      ) : status === 'error' ? (
+        <Copy className="h-4 w-4 text-destructive" />
+      ) : (
+        <Copy className="h-4 w-4" />
+      )}
     </Button>
   )
 }
