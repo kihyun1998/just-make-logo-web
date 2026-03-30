@@ -3,7 +3,7 @@ import { EditorView } from "@/views/editor";
 
 export default function EditorPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header />
       <EditorView />
     </div>

@@ -8,14 +8,14 @@ export function EditorView() {
   useKeyboardShortcuts()
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col min-[700px]:flex-row">
-      {/* Preview area - 3/4 on desktop, 3/5 on mobile */}
-      <div className="flex flex-[3] items-center justify-center bg-muted/30 p-4 min-[700px]:p-8">
+    <div className="flex min-h-0 flex-1 flex-col min-[700px]:flex-row">
+      {/* Preview area */}
+      <div className="flex flex-[3] items-center justify-center overflow-hidden bg-muted/30 p-4 min-[700px]:p-8">
         <LogoCanvas />
       </div>
 
-      {/* Control panel - 1/4 on desktop, 2/5 on mobile */}
-      <div className="flex-[2] overflow-y-auto border-t border-border min-[700px]:flex-[1] min-[700px]:border-l min-[700px]:border-t-0">
+      {/* Control panel — only this area scrolls */}
+      <div className="min-h-0 flex-[2] overflow-y-auto border-t border-border min-[700px]:flex-[1] min-[700px]:border-l min-[700px]:border-t-0">
         <ControlPanel />
       </div>
     </div>
