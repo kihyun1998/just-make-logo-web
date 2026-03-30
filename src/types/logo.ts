@@ -112,10 +112,14 @@ export interface LogoState {
   gradientFocalY?: number
 
   // Image
+  imageDataUrl: string | null // base64 data URL
   imagePosition: ImagePosition
   imageFlex: number // 10~90
   imageGap: number // 0~50
   imageFit: ImageFit
+
+  // SVG
+  svgContent: string | null // raw SVG string
 
   // Canvas size
   canvasWidth: number

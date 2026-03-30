@@ -50,10 +50,13 @@ export const DEFAULT_LOGO_STATE: LogoState = {
     { color: '#F09819', position: 1 },
   ],
 
+  imageDataUrl: null,
   imagePosition: 'top',
   imageFlex: 50,
   imageGap: 10,
   imageFit: 'contain',
+
+  svgContent: null,
 
   canvasWidth: 512,
   canvasHeight: 512,

@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useLogoStore } from '@/store/logo-store'
 import { renderLogo } from '@/lib/render-logo'
-import { SIZE_PRESETS } from '@/data/presets'
+import { generateSvg } from '@/lib/export-svg'
+import { SIZE_PRESETS, DEVICE_GROUPS } from '@/data/presets'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -103,8 +104,7 @@ export function ExportPanel() {
             <SelectContent>
               <SelectItem value="png">PNG</SelectItem>
               <SelectItem value="jpg">JPG</SelectItem>
-              <SelectItem value="svg" disabled>SVG (Phase 2)</SelectItem>
-              <SelectItem value="ico" disabled>ICO (Phase 2)</SelectItem>
+              <SelectItem value="svg">SVG</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -134,6 +134,46 @@ export function ExportPanel() {
 
       {/* Export button */}
       <ExportButton />
+
+      {/* Device presets */}
+      <DevicePresets />
+    </div>
+  )
+}
+
+function DevicePresets() {
+  const set = useLogoStore((s) => s.set)
+  const [open, setOpen] = useState<string | null>(null)
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-xs font-medium text-muted-foreground">Device Presets</label>
+      {DEVICE_GROUPS.map((group) => (
+        <div key={group.platform}>
+          <button
+            onClick={() => setOpen(open === group.platform ? null : group.platform)}
+            className="flex w-full items-center justify-between rounded-md bg-secondary px-2 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-accent"
+          >
+            {group.platform}
+            <span className="text-muted-foreground">{open === group.platform ? '−' : '+'}</span>
+          </button>
+          {open === group.platform && (
+            <div className="mt-1 grid grid-cols-2 gap-1">
+              {group.sizes.map((size) => (
+                <button
+                  key={size.name}
+                  onClick={() => set({ canvasWidth: size.width, canvasHeight: size.height })}
+                  className="rounded-md border border-border px-2 py-1 text-left text-xs hover:bg-muted/50"
+                >
+                  <span className="font-medium">{size.name}</span>
+                  <br />
+                  <span className="text-muted-foreground">{size.width}x{size.height}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
@@ -142,17 +182,48 @@ function ExportButton() {
   const exportFormat = useLogoStore((s) => s.exportFormat)
   const exportingRef = useRef(false)
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (exportingRef.current) return
     exportingRef.current = true
 
-    // Get full state snapshot for rendering
     const state = useLogoStore.getState()
+
+    // SVG export — direct string generation
+    if (state.exportFormat === 'svg') {
+      const svgString = generateSvg(state)
+      const blob = new Blob([svgString], { type: 'image/svg+xml' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `logo_${state.canvasWidth}x${state.canvasHeight}.svg`
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 3000)
+      exportingRef.current = false
+      return
+    }
+
+    // Raster export (PNG/JPG)
     const { canvasWidth, canvasHeight, exportScale } = state
+
+    // Load image if needed
+    let image: HTMLImageElement | null = null
+    const imgSrc = state.mode === 'svgOnly' && state.svgContent
+      ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
+      : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
+
+    if (imgSrc) {
+      image = await new Promise<HTMLImageElement>((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.onerror = () => resolve(null as unknown as HTMLImageElement)
+        img.src = imgSrc
+      })
+      if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
+    }
+
     const w = canvasWidth * exportScale
     const h = canvasHeight * exportScale
 
-    // Create offscreen canvas and render from scratch (no checkerboard)
     const offscreen = document.createElement('canvas')
     offscreen.width = w
     offscreen.height = h
@@ -162,13 +233,13 @@ function ExportButton() {
       return
     }
 
-    // Scale context so renderLogo draws at export resolution
     ctx.scale(exportScale, exportScale)
 
     const isJpg = state.exportFormat === 'jpg'
     renderLogo(ctx, state, canvasWidth, canvasHeight, {
       checkerboard: false,
       jpgBackground: isJpg && state.isTransparent,
+      image,
     })
 
     const mimeType = isJpg ? 'image/jpeg' : 'image/png'

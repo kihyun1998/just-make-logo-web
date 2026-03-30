@@ -5,7 +5,11 @@ import { useLogoStore } from '@/store/logo-store'
 import { loadAllFonts } from '@/lib/font-loader'
 import { TextPanel } from './panels/text-panel'
 import { StylePanel } from './panels/style-panel'
+import { SubTextPanel } from './panels/subtext-panel'
+import { ImagePanel } from './panels/image-panel'
+import { SvgPanel } from './panels/svg-panel'
 import { BackgroundPanel } from './panels/background-panel'
+import { GradientPanel } from './panels/gradient-panel'
 import { ExportPanel } from './panels/export-panel'
 import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -27,6 +31,8 @@ export function ControlPanel() {
     loadAllFonts()
   }, [])
 
+  const showText = mode === 'textOnly' || mode === 'textImage'
+
   return (
     <div className="flex flex-col gap-4 p-4">
       {/* Mode selector + Reset */}
@@ -38,12 +44,11 @@ export function ControlPanel() {
               <button
                 key={m.value}
                 onClick={() => set({ mode: m.value })}
-                disabled={m.value !== 'textOnly'}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   mode === m.value
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                } disabled:cursor-not-allowed disabled:opacity-40`}
+                }`}
               >
                 {m.label}
               </button>
@@ -57,18 +62,33 @@ export function ControlPanel() {
 
       <hr className="border-border" />
 
-      {/* Text panel */}
-      <TextPanel />
+      {/* Text panel (text modes) */}
+      {showText && <TextPanel />}
+      {showText && <hr className="border-border" />}
 
-      <hr className="border-border" />
+      {/* Style panel (text modes) */}
+      {showText && <StylePanel />}
+      {showText && <hr className="border-border" />}
 
-      {/* Style panel */}
-      <StylePanel />
+      {/* Sub text panel (text modes) */}
+      {showText && <SubTextPanel />}
+      {showText && <hr className="border-border" />}
 
-      <hr className="border-border" />
+      {/* Image panel (image modes) */}
+      <ImagePanel />
+      {(mode === 'imageOnly' || mode === 'textImage') && <hr className="border-border" />}
+
+      {/* SVG panel */}
+      <SvgPanel />
+      {mode === 'svgOnly' && <hr className="border-border" />}
 
       {/* Background panel */}
       <BackgroundPanel />
+
+      <hr className="border-border" />
+
+      {/* Gradient panel */}
+      <GradientPanel />
 
       <hr className="border-border" />
 

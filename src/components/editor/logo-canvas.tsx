@@ -1,53 +1,42 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useLogoStore } from '@/store/logo-store'
 import { renderLogo } from '@/lib/render-logo'
 
-// Select only fields that affect rendering (exclude export-only fields)
-const useRenderState = () =>
-  useLogoStore((s) => ({
-    canvasWidth: s.canvasWidth,
-    canvasHeight: s.canvasHeight,
-    mode: s.mode,
-    text1: s.text1,
-    text2: s.text2,
-    text3: s.text3,
-    textLines: s.textLines,
-    fontFamily: s.fontFamily,
-    fontWeight: s.fontWeight,
-    textColor: s.textColor,
-    textPadding: s.textPadding,
-    italic: s.italic,
-    uppercase: s.uppercase,
-    underline: s.underline,
-    rotation: s.rotation,
-    letterSpacing: s.letterSpacing,
-    lineHeight: s.lineHeight,
-    shadow: s.shadow,
-    stroke: s.stroke,
-    subText: s.subText,
-    backgroundColor: s.backgroundColor,
-    backgroundShape: s.backgroundShape,
-    isTransparent: s.isTransparent,
-    canvasPadding: s.canvasPadding,
-    borderRadius: s.borderRadius,
-    useGradient: s.useGradient,
-    gradientType: s.gradientType,
-    gradientDirection: s.gradientDirection,
-    gradientStops: s.gradientStops,
-    schemaVersion: s.schemaVersion,
-    imagePosition: s.imagePosition,
-    imageFlex: s.imageFlex,
-    imageGap: s.imageGap,
-    imageFit: s.imageFit,
-    exportFormat: s.exportFormat,
-    exportScale: s.exportScale,
-  }))
-
 export function LogoCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const state = useRenderState()
+  const state = useLogoStore()
+  const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null)
+
+  // Load image when imageDataUrl changes
+  useEffect(() => {
+    if (!state.imageDataUrl) {
+      setLoadedImage(null)
+      return
+    }
+    const img = new Image()
+    img.onload = () => setLoadedImage(img)
+    img.src = state.imageDataUrl
+  }, [state.imageDataUrl])
+
+  // Load SVG as image when svgContent changes
+  const [svgImage, setSvgImage] = useState<HTMLImageElement | null>(null)
+  useEffect(() => {
+    if (!state.svgContent) {
+      setSvgImage(null)
+      return
+    }
+    const blob = new Blob([state.svgContent], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(blob)
+    const img = new Image()
+    img.onload = () => {
+      setSvgImage(img)
+      URL.revokeObjectURL(url)
+    }
+    img.onerror = () => URL.revokeObjectURL(url)
+    img.src = url
+  }, [state.svgContent])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -61,14 +50,26 @@ export function LogoCanvas() {
     canvas.width = canvasWidth
     canvas.height = canvasHeight
 
-    // Explicitly load the required font before rendering
     const fontStyle = state.italic ? 'italic ' : ''
     const fontSpec = `${fontStyle}${fontWeight} 48px "${fontFamily}"`
 
-    document.fonts.load(fontSpec).then(() => {
-      renderLogo(ctx, state, canvasWidth, canvasHeight, { checkerboard: true })
+    // Also load subtext font if enabled
+    const subFontSpec = state.subText.enabled
+      ? `${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`
+      : null
+
+    const fontPromises = [document.fonts.load(fontSpec)]
+    if (subFontSpec) fontPromises.push(document.fonts.load(subFontSpec))
+
+    Promise.all(fontPromises).then(() => {
+      // For SVG mode, pass svgImage; for image modes, pass loadedImage
+      const imageForRender = state.mode === 'svgOnly' ? svgImage : loadedImage
+      renderLogo(ctx, state, canvasWidth, canvasHeight, {
+        checkerboard: true,
+        image: imageForRender,
+      })
     })
-  }, [state])
+  }, [state, loadedImage, svgImage])
 
   const { canvasWidth, canvasHeight } = state
 
