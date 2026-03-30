@@ -13,6 +13,7 @@ export function StylePanel() {
   const letterSpacing = useLogoStore((s) => s.letterSpacing)
   const lineHeight = useLogoStore((s) => s.lineHeight)
   const textLines = useLogoStore((s) => s.textLines)
+  const rotation = useLogoStore((s) => s.rotation)
   const shadow = useLogoStore((s) => s.shadow)
   const stroke = useLogoStore((s) => s.stroke)
   const set = useLogoStore((s) => s.set)
@@ -76,6 +77,21 @@ export function StylePanel() {
           />
         </div>
       )}
+
+      {/* Rotation */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-muted-foreground">Rotation</label>
+          <span className="text-xs text-muted-foreground">{rotation}°</span>
+        </div>
+        <Slider
+          min={0}
+          max={360}
+          step={1}
+          value={[rotation]}
+          onValueChange={([v]) => set({ rotation: v })}
+        />
+      </div>
 
       {/* Shadow */}
       <div className="flex flex-col gap-2">

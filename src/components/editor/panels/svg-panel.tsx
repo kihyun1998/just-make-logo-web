@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useLogoStore } from '@/store/logo-store'
 import { Button } from '@/components/ui/button'
 import { Upload, X } from 'lucide-react'
@@ -10,6 +10,13 @@ export function SvgPanel() {
   const svgContent = useLogoStore((s) => s.svgContent)
   const set = useLogoStore((s) => s.set)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // C1 fix: render SVG preview via <img> + blob URL instead of dangerouslySetInnerHTML
+  const previewUrl = useMemo(() => {
+    if (!svgContent) return null
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' })
+    return URL.createObjectURL(blob)
+  }, [svgContent])
 
   if (mode !== 'svgOnly') return null
 
@@ -24,7 +31,7 @@ export function SvgPanel() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     const file = e.dataTransfer.files[0]
-    if (file && file.name.endsWith('.svg')) handleFile(file)
+    if (file && (file.name.endsWith('.svg') || file.type === 'image/svg+xml')) handleFile(file)
   }
 
   return (
@@ -47,10 +54,14 @@ export function SvgPanel() {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          <div
-            className="flex h-20 items-center justify-center rounded-md border border-border bg-white p-2"
-            dangerouslySetInnerHTML={{ __html: svgContent }}
-          />
+          {previewUrl && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={previewUrl}
+              alt="SVG preview"
+              className="h-20 w-full rounded-md border border-border bg-white object-contain p-2"
+            />
+          )}
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -75,7 +86,7 @@ export function SvgPanel() {
       <input
         ref={fileRef}
         type="file"
-        accept=".svg"
+        accept=".svg,image/svg+xml"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]

@@ -3,7 +3,6 @@ import type { LogoState, GradientDirection } from '@/types/logo'
 export interface RenderOptions {
   checkerboard?: boolean
   jpgBackground?: boolean
-  /** Pre-loaded HTMLImageElement for image modes */
   image?: HTMLImageElement | null
 }
 
@@ -20,21 +19,17 @@ export function renderLogo(
 ) {
   ctx.clearRect(0, 0, width, height)
 
-  // JPG needs white background when transparent
   if (options.jpgBackground) {
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, width, height)
   }
 
-  // Checkerboard for preview transparency
   if (options.checkerboard && state.isTransparent) {
     drawCheckerboard(ctx, width, height)
   }
 
-  // --- Background ---
   drawBackground(ctx, state, width, height)
 
-  // --- Content area ---
   const padX = (width * state.canvasPadding) / 100
   const padY = (height * state.canvasPadding) / 100
   const contentX = padX
@@ -43,23 +38,30 @@ export function renderLogo(
   const contentH = height - padY * 2
 
   if (contentW <= 0 || contentH <= 0) {
-    drawPaddingWarning(ctx, width, height)
+    drawWarning(ctx, width, height, 'Too much padding')
     return
   }
 
-  // --- Render based on mode ---
   switch (state.mode) {
     case 'textOnly':
       renderTextBlock(ctx, state, contentX, contentY, contentW, contentH, width)
       break
     case 'imageOnly':
-      renderImage(ctx, state, options.image ?? null, contentX, contentY, contentW, contentH)
+      if (options.image) {
+        drawImageFit(ctx, options.image, contentX, contentY, contentW, contentH, state.imageFit)
+      } else {
+        drawWarning(ctx, width, height, 'No image')
+      }
       break
     case 'textImage':
       renderTextImage(ctx, state, options.image ?? null, contentX, contentY, contentW, contentH, width)
       break
     case 'svgOnly':
-      renderSvgContent(ctx, state, contentX, contentY, contentW, contentH)
+      if (options.image) {
+        drawImageFit(ctx, options.image, contentX, contentY, contentW, contentH, 'contain')
+      } else {
+        drawWarning(ctx, width, height, 'No SVG')
+      }
       break
   }
 }
@@ -71,7 +73,6 @@ export function renderLogo(
 function drawBackground(ctx: CanvasRenderingContext2D, state: LogoState, w: number, h: number) {
   if (state.isTransparent) return
 
-  // Determine fill style (solid or gradient)
   if (state.useGradient && state.gradientStops.length >= 2) {
     ctx.fillStyle = buildCanvasGradient(ctx, state, w, h)
   } else {
@@ -90,16 +91,10 @@ function drawBackground(ctx: CanvasRenderingContext2D, state: LogoState, w: numb
   }
 }
 
-function buildCanvasGradient(
-  ctx: CanvasRenderingContext2D,
-  state: LogoState,
-  w: number,
-  h: number,
-): CanvasGradient {
+function buildCanvasGradient(ctx: CanvasRenderingContext2D, state: LogoState, w: number, h: number): CanvasGradient {
   let gradient: CanvasGradient
   if (state.gradientType === 'radial') {
-    const cx = w / 2, cy = h / 2
-    const r = Math.max(w, h) / 2
+    const cx = w / 2, cy = h / 2, r = Math.max(w, h) / 2
     gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
   } else {
     const { x0, y0, x1, y1 } = directionToCoords(state.gradientDirection, w, h)
@@ -145,21 +140,16 @@ function renderTextBlock(
   const tH = areaH - textPadY * 2
 
   if (tW <= 0 || tH <= 0) {
-    drawPaddingWarning(ctx, canvasWidth, areaY + areaH / 2)
+    drawWarning(ctx, canvasWidth, areaY + areaH, 'Too much padding')
     return
   }
 
-  // Sub text reserve space
+  const sub = state.subText
   let mainH = tH
   let subFontSize = 0
-  const sub = state.subText
   if (sub.enabled && sub.text) {
-    // Reserve ~25% for subtext
     subFontSize = Math.max(8, tH * 0.15)
     mainH = tH - subFontSize * 1.5
-    if (sub.position === 'above') {
-      // subtext on top
-    }
   }
 
   const lines = getTextLines(state)
@@ -174,14 +164,12 @@ function renderTextBlock(
   const lineStep = fontSize * state.lineHeight
   const totalMainH = displayLines.length === 1 ? fontSize : fontSize + lineStep * (displayLines.length - 1)
 
-  // Calculate Y positions
   let mainStartY: number
   let subY: number | null = null
 
   if (sub.enabled && sub.text) {
     const totalBlock = totalMainH + subFontSize * 1.5
     const blockStartY = tY + (tH - totalBlock) / 2
-
     if (sub.position === 'above') {
       subY = blockStartY
       mainStartY = blockStartY + subFontSize * 1.5
@@ -203,7 +191,6 @@ function renderTextBlock(
     ctx.translate(-centerX, -(tY + tH / 2))
   }
 
-  // Draw main text lines
   ctx.font = `${fontStyle}${state.fontWeight} ${fontSize}px "${state.fontFamily}"`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'top'
@@ -214,10 +201,9 @@ function renderTextBlock(
     drawStyledText(ctx, state, text, centerX, y, fontSize)
   }
 
-  // Draw sub text
+  // Sub text
   if (sub.enabled && sub.text && subY !== null) {
-    const subStyle = ''
-    ctx.font = `${subStyle}${sub.fontWeight} ${subFontSize}px "${sub.fontFamily}"`
+    ctx.font = `${sub.fontWeight} ${subFontSize}px "${sub.fontFamily}"`
     ctx.fillStyle = sub.color
     ctx.shadowColor = 'transparent'
     ctx.fillText(sub.text, centerX, subY)
@@ -244,9 +230,9 @@ function drawStyledText(
     ctx.shadowBlur = state.shadow.blur
   }
 
-  // Stroke
+  // Stroke (before fill, shadow disabled for stroke)
   if (state.stroke.enabled) {
-    const savedShadow = ctx.shadowColor
+    const saved = ctx.shadowColor
     ctx.shadowColor = 'transparent'
     ctx.strokeStyle = state.stroke.color
     ctx.lineWidth = state.stroke.width
@@ -256,16 +242,16 @@ function drawStyledText(
     } else {
       ctx.strokeText(text, x, y)
     }
-    ctx.shadowColor = savedShadow
+    ctx.shadowColor = saved
   }
 
-  // Fill
+  // Fill — for letterSpacing, draw whole text first (for shadow), then per-char
   ctx.fillStyle = state.textColor
   if (state.letterSpacing !== 0) {
+    // Draw full text for shadow (shadow applies to this call)
     if (state.shadow.enabled) {
-      ctx.globalAlpha = 0
-      ctx.fillText(text, x, y)
-      ctx.globalAlpha = 1
+      ctx.fillText(text, x, y) // shadow renders from this
+      // Now disable shadow and draw per-character on top
       ctx.shadowColor = 'transparent'
     }
     drawTextWithSpacing(ctx, text, x, y, state.letterSpacing, 'fill')
@@ -302,19 +288,6 @@ function drawStyledText(
 // Image rendering
 // ============================================================
 
-function renderImage(
-  ctx: CanvasRenderingContext2D,
-  state: LogoState,
-  img: HTMLImageElement | null,
-  x: number, y: number, w: number, h: number,
-) {
-  if (!img) {
-    drawPlaceholder(ctx, x, y, w, h, 'No image')
-    return
-  }
-  drawImageFit(ctx, img, x, y, w, h, state.imageFit)
-}
-
 function renderTextImage(
   ctx: CanvasRenderingContext2D,
   state: LogoState,
@@ -331,13 +304,12 @@ function renderTextImage(
   let textX: number, textY: number, textW: number, textH: number
 
   if (isHorizontal) {
-    imgW = areaW * ratio - gap / 2
-    textW = areaW * (1 - ratio) - gap / 2
+    imgW = Math.max(0, areaW * ratio - gap / 2)
+    textW = Math.max(0, areaW * (1 - ratio) - gap / 2)
     imgH = areaH
     textH = areaH
     imgY = areaY
     textY = areaY
-
     if (pos === 'left') {
       imgX = areaX
       textX = areaX + imgW + gap
@@ -346,13 +318,12 @@ function renderTextImage(
       imgX = areaX + textW + gap
     }
   } else {
-    imgH = areaH * ratio - gap / 2
-    textH = areaH * (1 - ratio) - gap / 2
+    imgH = Math.max(0, areaH * ratio - gap / 2)
+    textH = Math.max(0, areaH * (1 - ratio) - gap / 2)
     imgW = areaW
     textW = areaW
     imgX = areaX
     textX = areaX
-
     if (pos === 'top') {
       imgY = areaY
       textY = areaY + imgH + gap
@@ -362,15 +333,13 @@ function renderTextImage(
     }
   }
 
-  // Draw image
-  if (img) {
+  if (img && imgW > 0 && imgH > 0) {
     drawImageFit(ctx, img, imgX, imgY, imgW, imgH, state.imageFit)
-  } else {
-    drawPlaceholder(ctx, imgX, imgY, imgW, imgH, 'No image')
   }
 
-  // Draw text
-  renderTextBlock(ctx, state, textX, textY, textW, textH, canvasWidth)
+  if (textW > 0 && textH > 0) {
+    renderTextBlock(ctx, state, textX, textY, textW, textH, canvasWidth)
+  }
 }
 
 function drawImageFit(
@@ -391,22 +360,11 @@ function drawImageFit(
   if (fit === 'fill') {
     dw = w; dh = h; dx = x; dy = y
   } else if (fit === 'cover') {
-    if (imgRatio > boxRatio) {
-      dh = h; dw = h * imgRatio
-    } else {
-      dw = w; dh = w / imgRatio
-    }
-    dx = x + (w - dw) / 2
-    dy = y + (h - dh) / 2
+    if (imgRatio > boxRatio) { dh = h; dw = h * imgRatio } else { dw = w; dh = w / imgRatio }
+    dx = x + (w - dw) / 2; dy = y + (h - dh) / 2
   } else {
-    // contain
-    if (imgRatio > boxRatio) {
-      dw = w; dh = w / imgRatio
-    } else {
-      dh = h; dw = h * imgRatio
-    }
-    dx = x + (w - dw) / 2
-    dy = y + (h - dh) / 2
+    if (imgRatio > boxRatio) { dw = w; dh = w / imgRatio } else { dh = h; dw = h * imgRatio }
+    dx = x + (w - dw) / 2; dy = y + (h - dh) / 2
   }
 
   ctx.drawImage(img, dx, dy, dw, dh)
@@ -414,56 +372,15 @@ function drawImageFit(
 }
 
 // ============================================================
-// SVG rendering
-// ============================================================
-
-function renderSvgContent(
-  ctx: CanvasRenderingContext2D,
-  state: LogoState,
-  x: number, y: number, w: number, h: number,
-) {
-  if (!state.svgContent) {
-    drawPlaceholder(ctx, x, y, w, h, 'No SVG')
-    return
-  }
-
-  // Render SVG via Image element (synchronous if already cached)
-  const blob = new Blob([state.svgContent], { type: 'image/svg+xml' })
-  const url = URL.createObjectURL(blob)
-  const img = new Image()
-  img.src = url
-
-  // Since this is synchronous in preview (image may not be loaded yet),
-  // we draw a placeholder. The canvas component handles async loading.
-  if (img.complete && img.naturalWidth > 0) {
-    drawImageFit(ctx, img, x, y, w, h, 'contain')
-    URL.revokeObjectURL(url)
-  } else {
-    drawPlaceholder(ctx, x, y, w, h, 'Loading SVG...')
-    URL.revokeObjectURL(url)
-  }
-}
-
-// ============================================================
 // Helpers
 // ============================================================
 
-function drawPlaceholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, text: string) {
-  ctx.save()
-  ctx.fillStyle = '#999999'
-  ctx.font = `${Math.max(10, Math.min(w, h) * 0.08)}px sans-serif`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(text, x + w / 2, y + h / 2)
-  ctx.restore()
-}
-
-function drawPaddingWarning(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function drawWarning(ctx: CanvasRenderingContext2D, w: number, h: number, text: string) {
   ctx.fillStyle = '#999999'
   ctx.font = `${Math.max(12, w * 0.03)}px sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('Too much padding', w / 2, typeof h === 'number' ? h : w / 2)
+  ctx.fillText(text, w / 2, h / 2)
 }
 
 function getTextLines(state: { text1: string; text2: string; text3: string; textLines: 1 | 2 | 3 }): string[] {
@@ -475,54 +392,32 @@ function getTextLines(state: { text1: string; text2: string; text3: string; text
 }
 
 function fitText(
-  ctx: CanvasRenderingContext2D,
-  displayLines: string[],
-  areaW: number,
-  areaH: number,
-  fontStyle: string,
-  fontWeight: number,
-  fontFamily: string,
-  letterSpacing: number,
-  lineHeight: number,
+  ctx: CanvasRenderingContext2D, displayLines: string[],
+  areaW: number, areaH: number, fontStyle: string,
+  fontWeight: number, fontFamily: string, letterSpacing: number, lineHeight: number,
 ): number {
-  let lo = 1
-  let hi = Math.ceil(areaH)
-  let best = 1
-
+  let lo = 1, hi = Math.ceil(areaH), best = 1
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2)
     ctx.font = `${fontStyle}${fontWeight} ${mid}px "${fontFamily}"`
-
     let maxWidth = 0
     for (const line of displayLines) {
-      const measured = letterSpacing !== 0
-        ? measureTextWithSpacing(ctx, line, letterSpacing)
-        : ctx.measureText(line).width
+      const measured = letterSpacing !== 0 ? measureTextWithSpacing(ctx, line, letterSpacing) : ctx.measureText(line).width
       if (measured > maxWidth) maxWidth = measured
     }
-
-    const totalHeight = displayLines.length === 1
-      ? mid
-      : mid + mid * lineHeight * (displayLines.length - 1)
-
-    if (maxWidth <= areaW && totalHeight <= areaH) {
-      best = mid
-      lo = mid + 1
-    } else {
-      hi = mid - 1
-    }
+    const totalHeight = displayLines.length === 1 ? mid : mid + mid * lineHeight * (displayLines.length - 1)
+    if (maxWidth <= areaW && totalHeight <= areaH) { best = mid; lo = mid + 1 } else { hi = mid - 1 }
   }
-
   return best
 }
 
 function measureTextWithSpacing(ctx: CanvasRenderingContext2D, text: string, spacing: number): number {
-  let totalWidth = 0
+  let w = 0
   for (let i = 0; i < text.length; i++) {
-    totalWidth += ctx.measureText(text[i]).width
-    if (i < text.length - 1) totalWidth += spacing
+    w += ctx.measureText(text[i]).width
+    if (i < text.length - 1) w += spacing
   }
-  return totalWidth
+  return w
 }
 
 function drawCheckerboard(ctx: CanvasRenderingContext2D, w: number, h: number) {
@@ -551,26 +446,18 @@ function drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w:
 }
 
 function drawTextWithSpacing(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  centerX: number,
-  y: number,
-  spacing: number,
-  mode: 'fill' | 'stroke',
+  ctx: CanvasRenderingContext2D, text: string, centerX: number, y: number,
+  spacing: number, mode: 'fill' | 'stroke',
 ) {
   const totalWidth = measureTextWithSpacing(ctx, text, spacing)
   let x = centerX - totalWidth / 2
   const savedAlign = ctx.textAlign
   ctx.textAlign = 'left'
   for (let i = 0; i < text.length; i++) {
-    const char = text[i]
-    const charWidth = ctx.measureText(char).width
-    if (mode === 'fill') {
-      ctx.fillText(char, x, y)
-    } else {
-      ctx.strokeText(char, x, y)
-    }
-    x += charWidth + spacing
+    const charW = ctx.measureText(text[i]).width
+    if (mode === 'fill') ctx.fillText(text[i], x, y)
+    else ctx.strokeText(text[i], x, y)
+    x += charW + spacing
   }
   ctx.textAlign = savedAlign
 }

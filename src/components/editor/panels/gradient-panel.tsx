@@ -1,6 +1,7 @@
 'use client'
 
 import { useLogoStore } from '@/store/logo-store'
+import { Slider } from '@/components/ui/slider'
 import { ColorPickerField } from '../color-picker-field'
 import { GRADIENT_PRESETS } from '@/data/presets'
 import type { GradientDirection, GradientType } from '@/types/logo'
@@ -81,18 +82,32 @@ export function GradientPanel() {
             </div>
           )}
 
-          {/* Color stops */}
+          {/* Color stops with position */}
           {gradientStops.map((stop, i) => (
-            <ColorPickerField
-              key={i}
-              label={`Color ${i + 1}`}
-              color={stop.color}
-              onChange={(c) => {
-                const newStops = [...gradientStops]
-                newStops[i] = { ...stop, color: c }
-                set({ gradientStops: newStops })
-              }}
-            />
+            <div key={i} className="flex flex-col gap-1.5">
+              <ColorPickerField
+                label={`Color ${i + 1}`}
+                color={stop.color}
+                onChange={(c) => {
+                  const newStops = [...gradientStops]
+                  newStops[i] = { ...stop, color: c }
+                  set({ gradientStops: newStops })
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground w-8">Pos</span>
+                <Slider
+                  min={0} max={100} step={1}
+                  value={[Math.round(stop.position * 100)]}
+                  onValueChange={([v]) => {
+                    const newStops = [...gradientStops]
+                    newStops[i] = { ...stop, position: v / 100 }
+                    set({ gradientStops: newStops })
+                  }}
+                />
+                <span className="text-xs text-muted-foreground w-8">{Math.round(stop.position * 100)}%</span>
+              </div>
+            </div>
           ))}
 
           {/* Add stop (max 3) */}
@@ -143,7 +158,7 @@ export function GradientPanel() {
                   onClick={() => set({ gradientStops: p.stops, useGradient: true })}
                   className="h-7 rounded-md border border-border transition-transform hover:scale-110"
                   style={{
-                    background: `linear-gradient(135deg, ${p.stops[0].color}, ${p.stops[1].color})`,
+                    background: `linear-gradient(135deg, ${p.stops.map(s => `${s.color} ${s.position * 100}%`).join(', ')})`,
                   }}
                 />
               ))}

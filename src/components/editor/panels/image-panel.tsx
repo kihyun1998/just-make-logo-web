@@ -95,11 +95,11 @@ export function ImagePanel() {
         }}
       />
 
-      {/* Text+Image layout options */}
-      {mode === 'textImage' && imageDataUrl && (
+      {/* Image layout options */}
+      {(mode === 'imageOnly' || mode === 'textImage') && imageDataUrl && (
         <>
-          {/* Position */}
-          <div className="flex flex-col gap-1.5">
+          {/* Position (textImage only) */}
+          {mode === 'textImage' && <div className="flex flex-col gap-1.5">
             <label className="text-xs text-muted-foreground">Image Position</label>
             <div className="flex gap-1">
               {(['top', 'bottom', 'left', 'right'] as ImagePosition[]).map((pos) => (
@@ -118,8 +118,10 @@ export function ImagePanel() {
             </div>
           </div>
 
-          {/* Image flex ratio */}
-          <div className="flex flex-col gap-1.5">
+          }
+
+          {/* Image flex ratio (textImage only) */}
+          {mode === 'textImage' && <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs text-muted-foreground">Image Ratio</label>
               <span className="text-xs text-muted-foreground">{imageFlex}%</span>
@@ -131,8 +133,10 @@ export function ImagePanel() {
             />
           </div>
 
-          {/* Gap */}
-          <div className="flex flex-col gap-1.5">
+          }
+
+          {/* Gap (textImage only) */}
+          {mode === 'textImage' && <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs text-muted-foreground">Gap</label>
               <span className="text-xs text-muted-foreground">{imageGap}px</span>
@@ -143,6 +147,8 @@ export function ImagePanel() {
               onValueChange={([v]) => set({ imageGap: v })}
             />
           </div>
+
+          }
 
           {/* Fit mode */}
           <div className="flex flex-col gap-1.5">

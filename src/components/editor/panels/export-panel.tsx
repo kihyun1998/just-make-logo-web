@@ -205,17 +205,17 @@ function ExportButton() {
     // Raster export (PNG/JPG)
     const { canvasWidth, canvasHeight, exportScale } = state
 
-    // Load image if needed
+    // Load image if needed for raster export
     let image: HTMLImageElement | null = null
     const imgSrc = state.mode === 'svgOnly' && state.svgContent
       ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
       : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
 
     if (imgSrc) {
-      image = await new Promise<HTMLImageElement>((resolve) => {
+      image = await new Promise<HTMLImageElement | null>((resolve) => {
         const img = new Image()
         img.onload = () => resolve(img)
-        img.onerror = () => resolve(null as unknown as HTMLImageElement)
+        img.onerror = () => resolve(null)
         img.src = imgSrc
       })
       if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
