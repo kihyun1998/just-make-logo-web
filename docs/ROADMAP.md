@@ -57,7 +57,7 @@
 - [x] JPG 내보내기 (`canvas.toBlob('image/jpeg', 0.95)`)
 - [x] 스케일 배율 선택 (1x/2x/3x/4x)
 - [x] 파일명 규칙: `logo_WxH[@scale].ext`
-- [ ] 내보내기 버튼 헤더에 고정 배치 → 현재 패널 하단에 배치
+- [x] 내보내기 버튼 (컨트롤 패널 하단 배치)
 
 ### Step 1-7. Undo/Redo + 다크모드 ✅
 - [x] zundo temporal Undo/Redo 연결
