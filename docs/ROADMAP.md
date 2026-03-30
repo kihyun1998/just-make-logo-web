@@ -126,55 +126,99 @@
 - [x] 리셋 버튼 UI
 - [x] 히스토리 debounce
 
-### Step 2-1. Image Only 모드
-- [ ] 이미지 업로드 UI (파일 피커 + 드래그 앤 드롭)
-- [ ] 이미지 썸네일 미리보기 / 교체 / 제거
-- [ ] Canvas에 이미지 렌더링 (Contain/Cover/Fill)
-- [ ] 배경 + 패딩 + 클리핑 적용
+### Step 2-1. Image Only 모드 ✅
+- [x] 이미지 업로드 UI (파일 피커 + 드래그 앤 드롭)
+- [x] 이미지 썸네일 미리보기 / 교체 / 제거
+- [x] Canvas에 이미지 렌더링 (Contain/Cover/Fill)
+- [x] 배경 + 패딩 + 클리핑 적용
 
-### Step 2-2. Text + Image 모드
-- [ ] 이미지 위치 선택 (Top/Bottom/Left/Right)
-- [ ] 이미지:텍스트 비율 슬라이더 (10~90%)
-- [ ] 간격(Gap) 슬라이더 (0~50px)
-- [ ] Fit 모드 선택 (Contain/Cover/Fill)
-- [ ] Canvas 렌더러에 텍스트+이미지 복합 레이아웃 구현
+### Step 2-2. Text + Image 모드 ✅
+- [x] 이미지 위치 선택 (Top/Bottom/Left/Right)
+- [x] 이미지:텍스트 비율 슬라이더 (10~90%)
+- [x] 간격(Gap) 슬라이더 (0~50px)
+- [x] Fit 모드 선택 (Contain/Cover/Fill)
+- [x] Canvas 렌더러에 텍스트+이미지 복합 레이아웃 구현
 
-### Step 2-3. SVG Only 모드
-- [ ] SVG 파일 업로드 (파일 피커 + 드래그 앤 드롭)
-- [ ] SVG 파싱 + Canvas에 렌더링
-- [ ] SVG 래핑 내보내기 (배경 + 패딩 + 클리핑 → 새 SVG)
+### Step 2-3. SVG Only 모드 ✅
+- [x] SVG 파일 업로드 (파일 피커 + 드래그 앤 드롭)
+- [x] SVG 파싱 + Canvas에 렌더링
+- [x] SVG 래핑 내보내기 (배경 + 패딩 + 클리핑 → 새 SVG)
 
-### Step 2-4. 그라디언트 배경
-- [ ] 그라디언트 ON/OFF 토글
-- [ ] Linear 그라디언트 (8방향 프리셋 버튼)
-- [ ] Radial 그라디언트 (기본)
-- [ ] 멀티 컬러 스톱 (2~3색) — 각 스톱 색상/위치 조절
-- [ ] 그라디언트 바 UI (드래그로 스톱 이동)
-- [ ] 프리셋 그라디언트 10종 (Sunset, Ocean 등)
-- [ ] Canvas 렌더러에 `createLinearGradient()` / `createRadialGradient()` 반영
+### Step 2-4. 그라디언트 배경 ✅
+- [x] 그라디언트 ON/OFF 토글
+- [x] Linear 그라디언트 (8방향 프리셋 버튼)
+- [x] Radial 그라디언트 (기본)
+- [x] 멀티 컬러 스톱 (2~3색) — 각 스톱 색상 + 위치% 슬라이더
+- [x] 그라디언트 미리보기 바 (드래그 스톱은 Slider로 대체)
+- [x] 프리셋 그라디언트 10종 (Sunset, Ocean 등)
+- [x] Canvas 렌더러에 `createLinearGradient()` / `createRadialGradient()` 반영
 
-### Step 2-5. 서브텍스트 + 텍스트 스타일 확장
-- [ ] 서브텍스트(슬로건) 입력 + 독립 설정 (폰트/크기/색상)
-- [ ] 서브텍스트 위치 (above/below)
-- [ ] 텍스트 회전 (0~360°)
-- [ ] Canvas에 underline 수동 렌더링
-- [ ] Canvas 렌더러에 서브텍스트 + 회전 반영
+### Step 2-5. 서브텍스트 + 텍스트 스타일 확장 ✅
+- [x] 서브텍스트(슬로건) 입력 + 독립 설정 (폰트/weight/색상)
+- [x] 서브텍스트 위치 (above/below)
+- [x] 텍스트 회전 (0~360° 슬라이더)
+- [x] Canvas에 underline 수동 렌더링
+- [x] Canvas 렌더러에 서브텍스트 + 회전 반영
 
-### Step 2-6. SVG + ICO 내보내기
-- [ ] SVG 내보내기: `<svg>` + `<text>` + 도형 직접 생성
-- [ ] SVG 폰트 임베딩 (Google Fonts `@import` URL)
-- [ ] SVG 그라디언트 (`<linearGradient>`, `<radialGradient>`)
-- [ ] SVG 클리핑 패스 (원형, 둥근 사각형)
-- [ ] ICO 내보내기 (Canvas → 16x16/32x32/48x48 멀티사이즈 ICO)
-- [ ] 디바이스별 크기 프리셋 UI (Android/iOS/Web/macOS/Windows 탭)
+### Step 2-6. SVG + ICO 내보내기 (부분 완료)
+- [x] SVG 내보내기: `<svg>` + `<text>` + 도형 직접 생성
+- [x] SVG 폰트 임베딩 (Google Fonts `@import` URL)
+- [x] SVG 그라디언트 (`<linearGradient>`, `<radialGradient>`)
+- [x] SVG 클리핑 패스 (원형, 둥근 사각형)
+- [ ] ICO 내보내기 → Phase 3 이후로 연기
+- [x] 디바이스별 크기 프리셋 UI (Android/iOS/Web/macOS/Windows 아코디언)
 
-**산출물:** Phase 2 완성. 4가지 모드 + 그라디언트 + SVG/ICO 내보내기
+### Phase 2 추가 구현 (로드맵 외)
+- [x] Resizable divider (프리뷰/패널 드래그 크기 조절, 20%~80%)
+- [x] 에디터 페이지 footer 숨김 (풀스크린 에디터)
+- [x] 커스텀 scrollbar 디자인 (6px, 테마 색상)
+- [x] 캔버스 반응형 (모바일 vertical resize 대응)
+- [x] SVG 프리뷰 보안 (dangerouslySetInnerHTML → img + blob URL)
+- [x] SVG export 폰트 크기 정확도 (offscreen canvas measureText)
+- [x] SVG export XML 이스케이프 (&amp; 수정)
+- [x] imageOnly 모드에서도 Fit 옵션 표시
+
+**산출물:** Phase 2 완성. 4가지 모드 + 그라디언트 + SVG 내보내기 + 디바이스 프리셋
+
+---
+
+## Phase 2 알려진 이슈
+
+### Critical
+| # | 이슈 | 파일 |
+|---|------|------|
+| C1 | SVG export에서 raw svgContent 직접 삽입 (XSS) | `export-svg.ts:62` |
+
+### Medium
+| # | 이슈 | 파일 |
+|---|------|------|
+| M1 | textImage/imageOnly SVG export에 이미지 누락 | `export-svg.ts:67-68` |
+| M2 | subText 활성 시 SVG export 폰트 크기 불일치 | `export-svg.ts:112` |
+| M3 | svg-panel Blob URL 미해제 (메모리 누수) | `svg-panel.tsx:15-18` |
+| M4 | 이미지/SVG 로딩 race condition | `logo-canvas.tsx:23-38` |
+| M5 | Font load promise stale closure | `logo-canvas.tsx:59-65` |
+
+### Low
+| # | 이슈 | 파일 |
+|---|------|------|
+| L1 | getTextLines 중복 정의 (render-logo.ts + text-utils.ts) | `render-logo.ts:386` |
+| L2 | window resize 시 divider 비율 강제 리셋 | `editor.tsx:19-28` |
 
 ---
 
 ## Phase 3: 프리셋 + 일괄 내보내기
 
 목표: **설정 저장/공유** + 일괄 내보내기로 실무 생산성 확보
+
+### Step 3-0. Phase 2 이슈 수정 (Phase 3 진입 전 필수)
+- [ ] C1: SVG export svgContent sanitize (script/event handler strip)
+- [ ] M1: textImage/imageOnly SVG export에 이미지 base64 임베딩
+- [ ] M2: SVG export에서 subText 활성 시 메인 텍스트 영역 축소 반영
+- [ ] M3: svg-panel Blob URL → useEffect + cleanup 패턴
+- [ ] M4: 이미지/SVG 로딩 cancelled 플래그로 race condition 방지
+- [ ] M5: Font load promise에 취소 플래그 추가
+- [ ] L1: render-logo.ts getTextLines → text-utils.ts import로 통합
+- [ ] L2: window resize 시 데스크톱↔모바일 전환 때만 비율 리셋
 
 ### Step 3-1. 컬러 프리셋
 - [ ] 컬러 프리셋 저장 UI (이름 지정, 반원 미리보기)
@@ -210,6 +254,7 @@
 - [ ] 공유 버튼 (링크 복사)
 
 ### Step 4-2. 추가 포맷
+- [ ] ICO 내보내기 (Canvas → 16x16/32x32/48x48 멀티사이즈)
 - [ ] WebP 내보내기 (`canvas.toBlob('image/webp')`)
 - [ ] AVIF 내보내기 (브라우저 지원 확인 후 fallback)
 
