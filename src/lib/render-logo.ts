@@ -1,4 +1,5 @@
 import type { LogoState, GradientDirection } from '@/types/logo'
+import { getTextLines } from './text-utils'
 
 export interface RenderOptions {
   checkerboard?: boolean
@@ -381,14 +382,6 @@ function drawWarning(ctx: CanvasRenderingContext2D, w: number, h: number, text: 
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText(text, w / 2, h / 2)
-}
-
-function getTextLines(state: { text1: string; text2: string; text3: string; textLines: 1 | 2 | 3 }): string[] {
-  const lines: string[] = []
-  if (state.text1 || state.textLines >= 1) lines.push(state.text1 || 'LOGO')
-  if (state.textLines >= 2) lines.push(state.text2 || '')
-  if (state.textLines >= 3) lines.push(state.text3 || '')
-  return lines.filter(l => l.length > 0)
 }
 
 function fitText(

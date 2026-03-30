@@ -6,7 +6,6 @@ import { useLogoStore } from '@/store/logo-store'
 import { renderLogo } from '@/lib/render-logo'
 import type { LogoState } from '@/types/logo'
 
-// Select only LogoState fields (exclude actions)
 const stateSelector = (s: LogoState & { set: unknown; reset: unknown }): LogoState => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { set: _, reset: __, ...state } = s
@@ -19,32 +18,40 @@ export function LogoCanvas() {
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null)
   const [svgImage, setSvgImage] = useState<HTMLImageElement | null>(null)
 
-  // Load image when imageDataUrl changes
+  // M4 fix: cancelled flag for image loading race condition
   useEffect(() => {
     if (!state.imageDataUrl) { setLoadedImage(null); return }
+    let cancelled = false
     const img = new Image()
-    img.onload = () => setLoadedImage(img)
+    img.onload = () => { if (!cancelled) setLoadedImage(img) }
     img.src = state.imageDataUrl
+    return () => { cancelled = true }
   }, [state.imageDataUrl])
 
-  // Load SVG as image when svgContent changes
+  // M4 fix: cancelled flag for SVG image loading race condition
   useEffect(() => {
     if (!state.svgContent) { setSvgImage(null); return }
+    let cancelled = false
     const blob = new Blob([state.svgContent], { type: 'image/svg+xml' })
     const url = URL.createObjectURL(blob)
     const img = new Image()
-    img.onload = () => { setSvgImage(img); URL.revokeObjectURL(url) }
+    img.onload = () => {
+      if (!cancelled) setSvgImage(img)
+      URL.revokeObjectURL(url)
+    }
     img.onerror = () => URL.revokeObjectURL(url)
     img.src = url
+    return () => { cancelled = true }
   }, [state.svgContent])
 
-  // Render canvas
+  // M5 fix: cancelled flag for font load + render to prevent stale closure
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    let cancelled = false
     const { canvasWidth, canvasHeight, fontFamily, fontWeight } = state
     canvas.width = canvasWidth
     canvas.height = canvasHeight
@@ -57,12 +64,15 @@ export function LogoCanvas() {
     }
 
     Promise.all(fontPromises).then(() => {
+      if (cancelled) return
       const imageForRender = state.mode === 'svgOnly' ? svgImage : loadedImage
       renderLogo(ctx, state, canvasWidth, canvasHeight, {
         checkerboard: true,
         image: imageForRender,
       })
     })
+
+    return () => { cancelled = true }
   }, [state, loadedImage, svgImage])
 
   const { canvasWidth, canvasHeight } = state

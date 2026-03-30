@@ -51,20 +51,55 @@ export function generateSvg(state: LogoState): string {
 
   // --- Content ---
   let contentElements = ''
+  const padX = (w * state.canvasPadding) / 100
+  const padY = (h * state.canvasPadding) / 100
+  const contentW = w - padX * 2
+  const contentH = h - padY * 2
 
   if (state.mode === 'svgOnly' && state.svgContent) {
-    // Wrap uploaded SVG inside the background
-    const padX = (w * state.canvasPadding) / 100
-    const padY = (h * state.canvasPadding) / 100
-    const cw = w - padX * 2, ch = h - padY * 2
-    if (cw > 0 && ch > 0) {
+    if (contentW > 0 && contentH > 0) {
       contentElements = `<g transform="translate(${padX},${padY})">`
-      contentElements += `<svg width="${cw}" height="${ch}" viewBox="0 0 ${cw} ${ch}">${state.svgContent}</svg>`
+      contentElements += `<svg width="${contentW}" height="${contentH}" viewBox="0 0 ${contentW} ${contentH}">${state.svgContent}</svg>`
       contentElements += `</g>`
     }
   }
 
-  if (state.mode === 'textOnly' || state.mode === 'textImage') {
+  if (state.mode === 'imageOnly' && state.imageDataUrl) {
+    // M1 fix: embed image as base64 in SVG
+    if (contentW > 0 && contentH > 0) {
+      contentElements += `<image href="${state.imageDataUrl}" x="${padX}" y="${padY}" width="${contentW}" height="${contentH}" preserveAspectRatio="xMidYMid ${state.imageFit === 'fill' ? 'none' : state.imageFit === 'cover' ? 'slice' : 'meet'}"/>`
+    }
+  }
+
+  if (state.mode === 'textImage') {
+    // M1 fix: embed image + text for textImage mode
+    if (contentW > 0 && contentH > 0) {
+      const pos = state.imagePosition
+      const isHorizontal = pos === 'left' || pos === 'right'
+      const gap = state.imageGap
+      const ratio = state.imageFlex / 100
+
+      if (state.imageDataUrl) {
+        let ix: number, iy: number, iw: number, ih: number
+        if (isHorizontal) {
+          iw = Math.max(0, contentW * ratio - gap / 2)
+          ih = contentH
+          iy = padY
+          ix = pos === 'left' ? padX : padX + contentW - iw
+        } else {
+          iw = contentW
+          ih = Math.max(0, contentH * ratio - gap / 2)
+          ix = padX
+          iy = pos === 'top' ? padY : padY + contentH - ih
+        }
+        const preserve = state.imageFit === 'fill' ? 'none' : state.imageFit === 'cover' ? 'xMidYMid slice' : 'xMidYMid meet'
+        contentElements += `<image href="${state.imageDataUrl}" x="${ix}" y="${iy}" width="${iw}" height="${ih}" preserveAspectRatio="${preserve}"/>`
+      }
+    }
+    contentElements += generateTextSvg(state, w, h, defs)
+  }
+
+  if (state.mode === 'textOnly') {
     contentElements += generateTextSvg(state, w, h, defs)
   }
 
@@ -108,15 +143,31 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
   if (lines.length === 0) return ''
   const displayLines = state.uppercase ? lines.map(l => l.toUpperCase()) : lines
 
-  // Use offscreen canvas + binary search for accurate font sizing
-  const fontSize = fitTextForSvg(displayLines, areaW, areaH, state)
+  // M2 fix: reduce main text area when subText is active (match Canvas rendering)
+  const sub = state.subText
+  let mainAreaH = areaH
+  let subFontSize = 0
+  if (sub.enabled && sub.text) {
+    subFontSize = Math.max(8, areaH * 0.15)
+    mainAreaH = areaH - subFontSize * 1.5
+  }
+
+  const fontSize = fitTextForSvg(displayLines, areaW, mainAreaH, state)
 
   const fontStyle = state.italic ? ' font-style="italic"' : ''
   const textDecoration = state.underline ? ' text-decoration="underline"' : ''
   const centerX = w / 2
   const lineStep = fontSize * state.lineHeight
   const totalH = lines.length === 1 ? fontSize : fontSize + lineStep * (lines.length - 1)
-  const startY = padY + textPadY + (areaH - totalH) / 2
+
+  let startY: number
+  if (sub.enabled && sub.text) {
+    const totalBlock = totalH + subFontSize * 1.5
+    const blockStartY = padY + textPadY + (areaH - totalBlock) / 2
+    startY = sub.position === 'above' ? blockStartY + subFontSize * 1.5 : blockStartY
+  } else {
+    startY = padY + textPadY + (mainAreaH - totalH) / 2
+  }
 
   // Shadow filter
   if (state.shadow.enabled) {
@@ -151,13 +202,17 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
   }
 
   // Sub text
-  if (state.subText.enabled && state.subText.text) {
-    const subSize = Math.max(8, fontSize * 0.4)
-    const subY = state.subText.position === 'below'
-      ? startY + totalH + subSize
-      : startY - subSize * 0.5
-    elements += `<text x="${centerX}" y="${subY}" text-anchor="middle" font-family="${esc(state.subText.fontFamily)}" ` +
-      `font-weight="${state.subText.fontWeight}" font-size="${subSize}" fill="${esc(state.subText.color)}">${esc(state.subText.text)}</text>`
+  if (sub.enabled && sub.text && subFontSize > 0) {
+    let subY: number
+    if (sub.position === 'below') {
+      subY = startY + totalH + subFontSize * 0.4 + subFontSize * 0.8
+    } else {
+      const totalBlock = totalH + subFontSize * 1.5
+      const blockStartY = padY + textPadY + (areaH - totalBlock) / 2
+      subY = blockStartY + subFontSize * 0.8
+    }
+    elements += `<text x="${centerX}" y="${subY}" text-anchor="middle" font-family="${esc(sub.fontFamily)}" ` +
+      `font-weight="${sub.fontWeight}" font-size="${subFontSize}" fill="${esc(sub.color)}">${esc(sub.text)}</text>`
   }
 
   elements += groupClose

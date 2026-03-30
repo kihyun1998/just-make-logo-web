@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useLogoStore } from '@/store/logo-store'
+import { sanitizeSvg } from '@/lib/sanitize-svg'
 import { Button } from '@/components/ui/button'
 import { Upload, X } from 'lucide-react'
 
@@ -11,11 +12,13 @@ export function SvgPanel() {
   const set = useLogoStore((s) => s.set)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // C1 fix: render SVG preview via <img> + blob URL instead of dangerouslySetInnerHTML
-  const previewUrl = useMemo(() => {
-    if (!svgContent) return null
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' })
-    return URL.createObjectURL(blob)
+  // M3 fix: useEffect + cleanup for Blob URL
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  useEffect(() => {
+    if (!svgContent) { setPreviewUrl(null); return }
+    const url = URL.createObjectURL(new Blob([svgContent], { type: 'image/svg+xml' }))
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
   }, [svgContent])
 
   if (mode !== 'svgOnly') return null
@@ -23,7 +26,10 @@ export function SvgPanel() {
   const handleFile = (file: File) => {
     const reader = new FileReader()
     reader.onload = (e) => {
-      set({ svgContent: e.target?.result as string })
+      const raw = e.target?.result as string
+      // C1 fix: sanitize SVG on upload
+      const clean = sanitizeSvg(raw)
+      set({ svgContent: clean })
     }
     reader.readAsText(file)
   }
@@ -48,9 +54,7 @@ export function SvgPanel() {
           className="flex cursor-pointer flex-col items-center gap-2 rounded-md border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary hover:bg-muted/50"
         >
           <Upload className="h-6 w-6 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            Click or drag .svg file here
-          </span>
+          <span className="text-xs text-muted-foreground">Click or drag .svg file here</span>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -63,20 +67,10 @@ export function SvgPanel() {
             />
           )}
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileRef.current?.click()}
-              className="flex-1 text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="flex-1 text-xs">
               Change
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => set({ svgContent: null })}
-              className="text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={() => set({ svgContent: null })} className="text-xs">
               <X className="h-3 w-3" />
             </Button>
           </div>
