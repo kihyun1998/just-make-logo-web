@@ -1,6 +1,5 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
 
 import ko from "./locales/ko.json";
 import en from "./locales/en.json";
@@ -11,24 +10,26 @@ const resources = {
 };
 
 if (!i18n.isInitialized) {
-  const instance = i18n.use(initReactI18next);
-
-  if (typeof window !== "undefined") {
-    instance.use(LanguageDetector);
-  }
-
-  instance.init({
+  // Always initialize with "ko" so SSR and client hydration match
+  i18n.use(initReactI18next).init({
     resources,
-    lng: typeof window === "undefined" ? "ko" : undefined,
-    fallbackLng: "en",
+    lng: "ko",
+    fallbackLng: "ko",
     interpolation: { escapeValue: false },
-    ...(typeof window !== "undefined" && {
-      detection: {
-        order: ["localStorage", "navigator"],
-        caches: ["localStorage"],
-      },
-    }),
   });
+}
+
+/**
+ * Call this from a useEffect to switch to the user's preferred language
+ * AFTER hydration is complete. This avoids SSR/client mismatch.
+ */
+export function detectAndApplyLanguage() {
+  if (typeof window === "undefined") return;
+  const stored = localStorage.getItem("i18nextLng");
+  const detected = stored || navigator.language?.split("-")[0];
+  if (detected && detected !== i18n.language && resources[detected as keyof typeof resources]) {
+    i18n.changeLanguage(detected);
+  }
 }
 
 export default i18n;
