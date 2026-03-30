@@ -41,7 +41,7 @@ export function LogoCanvas() {
     }
     img.onerror = () => URL.revokeObjectURL(url)
     img.src = url
-    return () => { cancelled = true }
+    return () => { cancelled = true; URL.revokeObjectURL(url) }
   }, [state.svgContent])
 
   // M5 fix: cancelled flag for font load + render to prevent stale closure

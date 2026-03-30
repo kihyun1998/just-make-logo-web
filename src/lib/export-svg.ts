@@ -79,24 +79,19 @@ export function generateSvg(state: LogoState): string {
       const gap = state.imageGap
       const ratio = state.imageFlex / 100
 
-      if (state.imageDataUrl) {
-        let ix: number, iy: number, iw: number, ih: number
-        if (isHorizontal) {
-          iw = Math.max(0, contentW * ratio - gap / 2)
-          ih = contentH
-          iy = padY
-          ix = pos === 'left' ? padX : padX + contentW - iw
-        } else {
-          iw = contentW
-          ih = Math.max(0, contentH * ratio - gap / 2)
-          ix = padX
-          iy = pos === 'top' ? padY : padY + contentH - ih
-        }
+      const layout = calcTextImageLayout(padX, padY, contentW, contentH, pos, isHorizontal, ratio, gap)
+
+      if (state.imageDataUrl && layout.imgW > 0 && layout.imgH > 0) {
         const preserve = state.imageFit === 'fill' ? 'none' : state.imageFit === 'cover' ? 'xMidYMid slice' : 'xMidYMid meet'
-        contentElements += `<image href="${state.imageDataUrl}" x="${ix}" y="${iy}" width="${iw}" height="${ih}" preserveAspectRatio="${preserve}"/>`
+        contentElements += `<image href="${state.imageDataUrl}" x="${layout.imgX}" y="${layout.imgY}" width="${layout.imgW}" height="${layout.imgH}" preserveAspectRatio="${preserve}"/>`
       }
     }
-    contentElements += generateTextSvg(state, w, h, defs)
+    if (contentW > 0 && contentH > 0) {
+      const layout = calcTextImageLayout(padX, padY, contentW, contentH, pos, isHorizontal, ratio, gap)
+      if (layout.textW > 0 && layout.textH > 0) {
+        contentElements += generateTextSvg(state, w, h, defs, { x: layout.textX, y: layout.textY, w: layout.textW, h: layout.textH })
+      }
+    }
   }
 
   if (state.mode === 'textOnly') {
@@ -127,15 +122,33 @@ export function generateSvg(state: LogoState): string {
   ].join('\n')
 }
 
-function generateTextSvg(state: LogoState, w: number, h: number, defs: string[]): string {
-  const padX = (w * state.canvasPadding) / 100
-  const padY = (h * state.canvasPadding) / 100
-  const aW = w - padX * 2
-  const aH = h - padY * 2
-  const textPadX = (aW * state.textPadding) / 100
-  const textPadY = (aH * state.textPadding) / 100
-  const areaW = aW - textPadX * 2
-  const areaH = aH - textPadY * 2
+function generateTextSvg(
+  state: LogoState, w: number, h: number, defs: string[],
+  textBounds?: { x: number; y: number; w: number; h: number },
+): string {
+  // When textBounds provided (textImage mode), use those instead of full canvas
+  let padStartY: number, areaW: number, areaH: number
+  let textCenterX: number
+
+  if (textBounds) {
+    const textPadX = (textBounds.w * state.textPadding) / 100
+    const textPadY = (textBounds.h * state.textPadding) / 100
+    textCenterX = textBounds.x + textBounds.w / 2
+    padStartY = textBounds.y + textPadY
+    areaW = textBounds.w - textPadX * 2
+    areaH = textBounds.h - textPadY * 2
+  } else {
+    const padX = (w * state.canvasPadding) / 100
+    const padY = (h * state.canvasPadding) / 100
+    const aW = w - padX * 2
+    const aH = h - padY * 2
+    const textPadX = (aW * state.textPadding) / 100
+    const textPadY = (aH * state.textPadding) / 100
+    textCenterX = w / 2
+    padStartY = padY + textPadY
+    areaW = aW - textPadX * 2
+    areaH = aH - textPadY * 2
+  }
 
   if (areaW <= 0 || areaH <= 0) return ''
 
@@ -156,17 +169,17 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
 
   const fontStyle = state.italic ? ' font-style="italic"' : ''
   const textDecoration = state.underline ? ' text-decoration="underline"' : ''
-  const centerX = w / 2
+  const centerX = textCenterX
   const lineStep = fontSize * state.lineHeight
   const totalH = lines.length === 1 ? fontSize : fontSize + lineStep * (lines.length - 1)
 
   let startY: number
   if (sub.enabled && sub.text) {
     const totalBlock = totalH + subFontSize * 1.5
-    const blockStartY = padY + textPadY + (areaH - totalBlock) / 2
+    const blockStartY = padStartY + (areaH - totalBlock) / 2
     startY = sub.position === 'above' ? blockStartY + subFontSize * 1.5 : blockStartY
   } else {
-    startY = padY + textPadY + (mainAreaH - totalH) / 2
+    startY = padStartY + (mainAreaH - totalH) / 2
   }
 
   // Shadow filter
@@ -181,8 +194,8 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
   // Rotation
   let groupOpen = '', groupClose = ''
   if (state.rotation !== 0) {
-    const cy = padY + textPadY + areaH / 2
-    groupOpen = `<g transform="rotate(${state.rotation}, ${centerX}, ${cy})">`
+    const rotCy = padStartY + areaH / 2
+    groupOpen = `<g transform="rotate(${state.rotation}, ${centerX}, ${rotCy})">`
     groupClose = '</g>'
   }
 
@@ -208,7 +221,7 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
       subY = startY + totalH + subFontSize * 0.4 + subFontSize * 0.8
     } else {
       const totalBlock = totalH + subFontSize * 1.5
-      const blockStartY = padY + textPadY + (areaH - totalBlock) / 2
+      const blockStartY = padStartY + (areaH - totalBlock) / 2
       subY = blockStartY + subFontSize * 0.8
     }
     elements += `<text x="${centerX}" y="${subY}" text-anchor="middle" font-family="${esc(sub.fontFamily)}" ` +
@@ -227,6 +240,21 @@ function esc(s: string): string {
  * Use an offscreen canvas to binary-search the exact font size,
  * matching the Canvas preview rendering.
  */
+function calcTextImageLayout(
+  padX: number, padY: number, contentW: number, contentH: number,
+  pos: string, isHorizontal: boolean, ratio: number, gap: number,
+) {
+  const imgW = isHorizontal ? Math.max(0, contentW * ratio - gap / 2) : contentW
+  const imgH = isHorizontal ? contentH : Math.max(0, contentH * ratio - gap / 2)
+  const textW = isHorizontal ? Math.max(0, contentW * (1 - ratio) - gap / 2) : contentW
+  const textH = isHorizontal ? contentH : Math.max(0, contentH * (1 - ratio) - gap / 2)
+  const textX = isHorizontal && pos === 'left' ? padX + imgW + gap : padX
+  const textY = !isHorizontal && pos === 'top' ? padY + imgH + gap : padY
+  const imgX = isHorizontal ? (pos === 'left' ? padX : padX + textW + gap) : padX
+  const imgY = !isHorizontal ? (pos === 'top' ? padY : padY + textH + gap) : padY
+  return { imgW, imgH, imgX, imgY, textW, textH, textX, textY }
+}
+
 function fitTextForSvg(
   displayLines: string[],
   areaW: number,

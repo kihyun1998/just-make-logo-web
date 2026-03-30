@@ -13,9 +13,10 @@ const DEFAULT_MOBILE = 0.44
 
 export function EditorView() {
   useKeyboardShortcuts()
-  const [fraction, setFraction] = useState(DEFAULT_DESKTOP)
-  const [isDesktop, setIsDesktop] = useState(true)
-  const wasDesktop = useRef(true)
+  const getInitialDesktop = () => typeof window !== 'undefined' ? window.innerWidth >= 700 : true
+  const [isDesktop, setIsDesktop] = useState(getInitialDesktop)
+  const [fraction, setFraction] = useState(() => getInitialDesktop() ? DEFAULT_DESKTOP : DEFAULT_MOBILE)
+  const wasDesktop = useRef(getInitialDesktop())
 
   useEffect(() => {
     const check = () => {

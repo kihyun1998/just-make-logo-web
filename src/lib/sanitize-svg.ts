@@ -1,36 +1,55 @@
 /**
  * Sanitize SVG string by removing dangerous elements and attributes.
- * Strips <script>, <foreignObject>, event handlers (on*), etc.
  */
 export function sanitizeSvg(raw: string): string {
   const parser = new DOMParser()
   const doc = parser.parseFromString(raw, 'image/svg+xml')
 
-  // Remove dangerous elements
-  const dangerous = ['script', 'foreignObject', 'iframe', 'object', 'embed', 'use']
+  // Remove dangerous elements (keep <use> — only strip external refs)
+  const dangerous = ['script', 'foreignObject', 'iframe', 'object', 'embed']
   for (const tag of dangerous) {
-    const els = doc.querySelectorAll(tag)
-    els.forEach(el => el.remove())
+    doc.querySelectorAll(tag).forEach(el => el.remove())
   }
 
-  // Remove event handler attributes (on*)
-  const all = doc.querySelectorAll('*')
-  all.forEach(el => {
-    const attrs = Array.from(el.attributes)
-    for (const attr of attrs) {
-      if (attr.name.startsWith('on') || attr.value.startsWith('javascript:')) {
-        el.removeAttribute(attr.name)
-      }
-    }
-    // Remove href with javascript:
-    const href = el.getAttribute('href') || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')
-    if (href?.startsWith('javascript:')) {
-      el.removeAttribute('href')
-      el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href')
+  // Strip <use> with external references only
+  doc.querySelectorAll('use').forEach(el => {
+    const href = el.getAttribute('href') || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || ''
+    if (href.startsWith('http:') || href.startsWith('https:') || href.startsWith('//')) {
+      el.remove()
     }
   })
 
-  const serializer = new XMLSerializer()
-  const svgEl = doc.documentElement
-  return serializer.serializeToString(svgEl)
+  // Remove event handler attributes and dangerous URIs
+  doc.querySelectorAll('*').forEach(el => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase()
+      const val = attr.value.trim().toLowerCase()
+
+      // Remove on* event handlers
+      if (name.startsWith('on')) {
+        el.removeAttribute(attr.name)
+        continue
+      }
+
+      // Remove dangerous URI schemes in any attribute
+      if (val.startsWith('javascript:') || val.startsWith('data:text/html')) {
+        el.removeAttribute(attr.name)
+      }
+    }
+
+    // Double-check href/xlink:href
+    for (const hrefAttr of [
+      el.getAttribute('href'),
+      el.getAttributeNS('http://www.w3.org/1999/xlink', 'href'),
+    ]) {
+      if (!hrefAttr) continue
+      const v = hrefAttr.trim().toLowerCase()
+      if (v.startsWith('javascript:') || v.startsWith('data:text/html')) {
+        el.removeAttribute('href')
+        el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href')
+      }
+    }
+  })
+
+  return new XMLSerializer().serializeToString(doc.documentElement)
 }
