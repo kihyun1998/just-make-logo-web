@@ -2,6 +2,7 @@
 
 import { useLogoStore } from '@/store/logo-store'
 import { Slider } from '@/components/ui/slider'
+import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { ColorPickerField } from '../color-picker-field'
 import { Italic, CaseSensitive, Underline } from 'lucide-react'
 import type { TextShadow, TextStroke } from '@/types/logo'
@@ -149,23 +150,6 @@ export function StylePanel() {
         )}
       </div>
     </div>
-  )
-}
-
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`relative h-5 w-9 rounded-full transition-colors ${
-        checked ? 'bg-primary' : 'bg-input'
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-4' : ''
-        }`}
-      />
-    </button>
   )
 }
 

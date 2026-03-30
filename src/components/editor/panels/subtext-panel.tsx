@@ -1,6 +1,7 @@
 'use client'
 
 import { useLogoStore } from '@/store/logo-store'
+import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { FONTS, getFontData } from '@/data/fonts'
 import { Input } from '@/components/ui/input'
 import {
@@ -29,18 +30,7 @@ export function SubTextPanel() {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Sub Text
         </h3>
-        <button
-          onClick={() => update({ enabled: !subText.enabled })}
-          className={`relative h-5 w-9 rounded-full transition-colors ${
-            subText.enabled ? 'bg-primary' : 'bg-input'
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-              subText.enabled ? 'translate-x-4' : ''
-            }`}
-          />
-        </button>
+        <ToggleSwitch checked={subText.enabled} onChange={(v) => update({ enabled: v })} />
       </div>
 
       {subText.enabled && (

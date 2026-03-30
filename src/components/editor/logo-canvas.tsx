@@ -47,16 +47,18 @@ export function LogoCanvas() {
   useEffect(() => {
     if (!state.svgContent) { setSvgImage(null); return }
     let cancelled = false
+    let revoked = false
     const blob = new Blob([state.svgContent], { type: 'image/svg+xml' })
     const url = URL.createObjectURL(blob)
+    const revoke = () => { if (!revoked) { revoked = true; URL.revokeObjectURL(url) } }
     const img = new Image()
     img.onload = () => {
       if (!cancelled) setSvgImage(img)
-      URL.revokeObjectURL(url)
+      revoke()
     }
-    img.onerror = () => URL.revokeObjectURL(url)
+    img.onerror = revoke
     img.src = url
-    return () => { cancelled = true; URL.revokeObjectURL(url) }
+    return () => { cancelled = true; revoke() }
   }, [state.svgContent])
 
   // M5 fix: cancelled flag for font load + render to prevent stale closure

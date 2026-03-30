@@ -2,6 +2,7 @@
 
 import { useLogoStore } from '@/store/logo-store'
 import { Slider } from '@/components/ui/slider'
+import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { ColorPickerField } from '../color-picker-field'
 import { QUICK_COLORS } from '@/data/presets'
 import type { BackgroundShape } from '@/types/logo'
@@ -46,18 +47,7 @@ export function BackgroundPanel() {
       {/* Transparent toggle */}
       <div className="flex items-center justify-between">
         <label className="text-xs text-muted-foreground">Transparent</label>
-        <button
-          onClick={() => set({ isTransparent: !isTransparent })}
-          className={`relative h-5 w-9 rounded-full transition-colors ${
-            isTransparent ? 'bg-primary' : 'bg-input'
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-              isTransparent ? 'translate-x-4' : ''
-            }`}
-          />
-        </button>
+        <ToggleSwitch checked={isTransparent} onChange={(v) => set({ isTransparent: v })} />
       </div>
 
       {/* Background color (hidden when transparent) */}

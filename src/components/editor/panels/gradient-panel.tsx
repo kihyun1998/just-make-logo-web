@@ -2,6 +2,7 @@
 
 import { useLogoStore } from '@/store/logo-store'
 import { Slider } from '@/components/ui/slider'
+import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { ColorPickerField } from '../color-picker-field'
 import { GRADIENT_PRESETS } from '@/data/presets'
 import type { GradientDirection, GradientType } from '@/types/logo'
@@ -30,18 +31,7 @@ export function GradientPanel() {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Gradient
         </h3>
-        <button
-          onClick={() => set({ useGradient: !useGradient })}
-          className={`relative h-5 w-9 rounded-full transition-colors ${
-            useGradient ? 'bg-primary' : 'bg-input'
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-              useGradient ? 'translate-x-4' : ''
-            }`}
-          />
-        </button>
+        <ToggleSwitch checked={useGradient} onChange={(v) => set({ useGradient: v })} />
       </div>
 
       {useGradient && (

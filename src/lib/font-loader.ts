@@ -1,13 +1,14 @@
 import { buildAllFontsUrl } from '@/data/fonts'
 
-let loaded = false
+const LINK_ID = 'google-fonts-all'
 
 export function loadAllFonts() {
-  if (loaded) return
   if (typeof document === 'undefined') return
-  loaded = true
+  // Prevent duplicate link tags (HMR safe)
+  if (document.getElementById(LINK_ID)) return
 
   const link = document.createElement('link')
+  link.id = LINK_ID
   link.rel = 'stylesheet'
   link.href = buildAllFontsUrl()
   document.head.appendChild(link)
