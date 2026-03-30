@@ -30,7 +30,7 @@ export type ImagePosition = 'top' | 'bottom' | 'left' | 'right'
 export type FontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
 
 // Export format
-export type ExportFormat = 'png' | 'jpg' | 'svg' | 'ico'
+export type ExportFormat = 'png' | 'jpg' | 'svg'
 
 // Export scale
 export type ExportScale = 1 | 2 | 3 | 4
@@ -76,7 +76,7 @@ export interface LogoState {
   fontFamily: string
   fontWeight: FontWeight
   textColor: string
-  textPadding: number // 0~90, step 5 (%)
+  textPadding: number // 0~90, step 1 (%)
   italic: boolean
   uppercase: boolean
   underline: boolean
@@ -95,7 +95,7 @@ export interface LogoState {
   backgroundColor: string
   backgroundShape: BackgroundShape
   isTransparent: boolean
-  canvasPadding: number // 0~90, step 5 (%)
+  canvasPadding: number // 0~90, step 1 (%)
   borderRadius: number // 0~100 (px)
 
   // Gradient

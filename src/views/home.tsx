@@ -12,7 +12,7 @@ export function HomePage() {
       <h1 className="text-4xl font-bold">{t("home.title")}</h1>
       <p className="text-lg text-muted-foreground">{t("home.subtitle")}</p>
       <Button size="lg" asChild>
-        <Link href="/editor">Start Making Logo</Link>
+        <Link href="/editor">{t("home.cta")}</Link>
       </Button>
     </div>
   );

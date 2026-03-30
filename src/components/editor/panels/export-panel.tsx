@@ -202,7 +202,13 @@ function ExportButton() {
       return
     }
 
-    // Raster export (PNG/JPG)
+    // Raster export (PNG/JPG) — ensure fonts are loaded first
+    const fontStyle = state.italic ? 'italic ' : ''
+    await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
+    if (state.subText.enabled) {
+      await document.fonts.load(`${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`)
+    }
+
     const { canvasWidth, canvasHeight, exportScale } = state
 
     // Load image if needed for raster export

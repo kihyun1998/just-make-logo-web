@@ -2,25 +2,29 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useShallow } from 'zustand/shallow'
-import { useLogoStore } from '@/store/logo-store'
+import { useLogoStore, type LogoStore } from '@/store/logo-store'
 import { renderLogo } from '@/lib/render-logo'
 import type { LogoState } from '@/types/logo'
 
-const stateKeys: (keyof LogoState)[] = [
-  'schemaVersion', 'mode', 'text1', 'text2', 'text3', 'textLines',
-  'fontFamily', 'fontWeight', 'textColor', 'textPadding', 'italic',
-  'uppercase', 'underline', 'rotation', 'letterSpacing', 'lineHeight',
-  'shadow', 'stroke', 'subText', 'backgroundColor', 'backgroundShape',
-  'isTransparent', 'canvasPadding', 'borderRadius', 'useGradient',
-  'gradientType', 'gradientDirection', 'gradientStops', 'imageDataUrl',
-  'imagePosition', 'imageFlex', 'imageGap', 'imageFit', 'svgContent',
-  'canvasWidth', 'canvasHeight', 'exportFormat', 'exportScale',
-]
-
-const stateSelector = (s: Record<string, unknown>): LogoState => {
-  const result: Record<string, unknown> = {}
-  for (const key of stateKeys) result[key] = s[key]
-  return result as LogoState
+function stateSelector(s: LogoStore): LogoState {
+  return {
+    schemaVersion: s.schemaVersion, mode: s.mode,
+    text1: s.text1, text2: s.text2, text3: s.text3, textLines: s.textLines,
+    fontFamily: s.fontFamily, fontWeight: s.fontWeight,
+    textColor: s.textColor, textPadding: s.textPadding,
+    italic: s.italic, uppercase: s.uppercase, underline: s.underline,
+    rotation: s.rotation, letterSpacing: s.letterSpacing, lineHeight: s.lineHeight,
+    shadow: s.shadow, stroke: s.stroke, subText: s.subText,
+    backgroundColor: s.backgroundColor, backgroundShape: s.backgroundShape,
+    isTransparent: s.isTransparent, canvasPadding: s.canvasPadding,
+    borderRadius: s.borderRadius, useGradient: s.useGradient,
+    gradientType: s.gradientType, gradientDirection: s.gradientDirection,
+    gradientStops: s.gradientStops, imageDataUrl: s.imageDataUrl,
+    imagePosition: s.imagePosition, imageFlex: s.imageFlex,
+    imageGap: s.imageGap, imageFit: s.imageFit, svgContent: s.svgContent,
+    canvasWidth: s.canvasWidth, canvasHeight: s.canvasHeight,
+    exportFormat: s.exportFormat, exportScale: s.exportScale,
+  }
 }
 
 export function LogoCanvas() {

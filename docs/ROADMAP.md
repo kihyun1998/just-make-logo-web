@@ -302,7 +302,7 @@ Phase 1 ✅
 | 리스크 | 영향 | 대응 |
 |--------|------|------|
 | Canvas 멀티라인 + letter-spacing 크로스브라우저 | Step 1-5 | Safari fallback 문자별 렌더링 ✅ 구현됨 |
-| FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 미반영 이슈 남음 |
+| FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 반영 완료 |
 | Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 전체 한 번에 로드 방식 사용 중, lazy load 개선 가능 |
 | SVG 내보내기 폰트 임베딩 | Step 2-6 | `@import` URL 방식 우선, Base64 임베딩은 후순위 |
 | ICO 멀티사이즈 생성 | Step 4-2 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |

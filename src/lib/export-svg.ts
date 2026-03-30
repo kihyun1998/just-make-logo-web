@@ -85,9 +85,6 @@ export function generateSvg(state: LogoState): string {
         const preserve = state.imageFit === 'fill' ? 'none' : state.imageFit === 'cover' ? 'xMidYMid slice' : 'xMidYMid meet'
         contentElements += `<image href="${state.imageDataUrl}" x="${layout.imgX}" y="${layout.imgY}" width="${layout.imgW}" height="${layout.imgH}" preserveAspectRatio="${preserve}"/>`
       }
-    }
-    if (contentW > 0 && contentH > 0) {
-      const layout = calcTextImageLayout(padX, padY, contentW, contentH, pos, isHorizontal, ratio, gap)
       if (layout.textW > 0 && layout.textH > 0) {
         contentElements += generateTextSvg(state, w, h, defs, { x: layout.textX, y: layout.textY, w: layout.textW, h: layout.textH })
       }

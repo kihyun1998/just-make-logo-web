@@ -24,7 +24,13 @@ export function ImagePanel() {
   const showImage = mode === 'imageOnly' || mode === 'textImage'
   if (!showImage) return null
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
   const handleFile = (file: File) => {
+    if (file.size > MAX_FILE_SIZE) {
+      alert('Image too large. Max 5MB.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = (e) => {
       set({ imageDataUrl: e.target?.result as string })
