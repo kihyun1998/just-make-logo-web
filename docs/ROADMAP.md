@@ -247,26 +247,26 @@
 > **테이블 네이밍:** 멀티앱 공유 Supabase이므로 `logo_` prefix 사용
 > (다른 서비스: `qr_`, `scene_` 등 직관적 prefix)
 
-### Step 4-1. Supabase 프로젝트 세팅
-- [ ] 환경변수 설정 (`.env.local` — URL, Anon Key)
-- [ ] `@supabase/ssr` 설치 + `supabase.ts` 리팩터 (`createBrowserClient` / `createServerClient`)
-- [ ] Next.js middleware 추가 (세션 갱신)
-- [ ] `auth-context.tsx` → Google OAuth 전환 (`signInWithOAuth({ provider: 'google' })`)
-- [ ] `/app/auth/callback/route.ts` OAuth 콜백 라우트
-- [ ] 로그인 페이지 Google OAuth 버튼으로 교체
-- [ ] 회원가입 페이지 (상세 추후 확정)
+### Step 4-1. Supabase 프로젝트 세팅 ✅ (회원가입 제외)
+- [x] 환경변수 설정 (`.env.local` — URL, Anon Key)
+- [x] `@supabase/ssr` 설치 + `supabase.ts` 리팩터 (`createBrowserClient` / `createServerClient`)
+- [x] Next.js middleware 추가 (세션 갱신)
+- [x] `auth-context.tsx` → Google OAuth 전환 (`signInWithOAuth({ provider: 'google' })`)
+- [x] `/app/auth/callback/route.ts` OAuth 콜백 라우트
+- [x] 로그인 페이지 Google OAuth 버튼으로 교체
+- [ ] 회원가입 페이지 (상세 추후 확정 — npm 패키지 대기 중)
 
-### Step 4-2. 프로젝트 저장 스키마
-- [ ] `logo_projects` 테이블 마이그레이션:
+### Step 4-2. 프로젝트 저장 스키마 ✅
+- [x] `logo_projects` 테이블 마이그레이션:
   ```
   id          uuid PK (gen_random_uuid)
   user_id     uuid FK → auth.users (CASCADE)
   name        text (default 'Untitled')
   config      jsonb (LogoState — imageDataUrl/svgContent 제외, 설정값만 ~1-2KB)
   created_at  timestamptz
-  updated_at  timestamptz
+  updated_at  timestamptz (auto-trigger)
   ```
-- [ ] `logo_color_presets` 테이블 마이그레이션:
+- [x] `logo_color_presets` 테이블 마이그레이션:
   ```
   id          uuid PK (gen_random_uuid)
   user_id     uuid FK → auth.users (CASCADE)
@@ -275,8 +275,8 @@
   sort_order  integer
   created_at  timestamptz
   ```
-- [ ] RLS 정책 — 본인 데이터만 CRUD (`auth.uid() = user_id`)
-- [ ] 썸네일/이미지 저장 안 함 — config로 캔버스 렌더링
+- [x] RLS 정책 — 본인 데이터만 CRUD (`auth.uid() = user_id`, UPDATE WITH CHECK 포함)
+- [x] 썸네일/이미지 저장 안 함 — config로 캔버스 렌더링
 
 ### Step 4-3. 저장/불러오기 기능
 - [ ] 현재 에디터 상태 → 서버 저장 (config jsonb, imageDataUrl/svgContent 제외)
