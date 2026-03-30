@@ -59,12 +59,11 @@
 - [x] 파일명 규칙: `logo_WxH[@scale].ext`
 - [ ] 내보내기 버튼 헤더에 고정 배치 → 현재 패널 하단에 배치
 
-### Step 1-7. Undo/Redo + 다크모드 ✅ (일부 미비)
+### Step 1-7. Undo/Redo + 다크모드 ✅
 - [x] zundo temporal Undo/Redo 연결
 - [x] 키보드 단축키: Ctrl+Z (Undo), Ctrl+Shift+Z / Ctrl+Y (Redo)
-- [ ] 슬라이더 debounce (드래그 종료 시점에 히스토리 커밋) → 미구현
-- [ ] 텍스트 입력 debounce (300ms) → 미구현
-- [ ] 리셋 버튼 UI → 스토어에 `reset()` 액션만 있고 UI 버튼 없음
+- [x] 히스토리 debounce (300ms handleSet throttle — 슬라이더/텍스트 모두 적용)
+- [x] 리셋 버튼 UI (컨트롤 패널 상단 RotateCcw 아이콘)
 - [x] 다크모드 (shadcn/ui 테마 토큰 사용으로 기본 대응)
 
 ### Phase 1 추가 구현 (로드맵 외)
@@ -124,8 +123,8 @@
 - [ ] M3: `fitText`에서 uppercase 상태 반영하여 측정
 - [ ] M4: 멀티라인 Y좌표 계산 통일
 - [ ] M5: i18n 언어 전환을 `useEffect`로 이동
-- [ ] 리셋 버튼 UI 추가
-- [ ] 슬라이더/텍스트 입력 debounce 추가
+- [x] 리셋 버튼 UI 추가 ✅ (Phase 1에서 해결)
+- [x] 히스토리 debounce 추가 ✅ (Phase 1에서 해결)
 
 ### Step 2-1. Image Only 모드
 - [ ] 이미지 업로드 UI (파일 피커 + 드래그 앤 드롭)
