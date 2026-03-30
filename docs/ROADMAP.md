@@ -244,30 +244,53 @@
 
 목표: **로그인 + 프로젝트 서버 저장/불러오기**로 로컬 의존 제거
 
+> **테이블 네이밍:** 멀티앱 공유 Supabase이므로 `logo_` prefix 사용
+> (다른 서비스: `qr_`, `scene_` 등 직관적 prefix)
+
 ### Step 4-1. Supabase 프로젝트 세팅
-- [ ] Supabase CLI 초기화 (`supabase init`)
 - [ ] 환경변수 설정 (`.env.local` — URL, Anon Key)
-- [ ] 기존 `src/lib/supabase.ts` + `auth-context.tsx` 연결 확인
-- [ ] 로그인/회원가입 UI (Google OAuth 또는 Magic Link)
+- [ ] `@supabase/ssr` 설치 + `supabase.ts` 리팩터 (`createBrowserClient` / `createServerClient`)
+- [ ] Next.js middleware 추가 (세션 갱신)
+- [ ] `auth-context.tsx` → Google OAuth 전환 (`signInWithOAuth({ provider: 'google' })`)
+- [ ] `/app/auth/callback/route.ts` OAuth 콜백 라우트
+- [ ] 로그인 페이지 Google OAuth 버튼으로 교체
+- [ ] 회원가입 페이지 (상세 추후 확정)
 
 ### Step 4-2. 프로젝트 저장 스키마
-- [ ] `projects` 테이블 마이그레이션 (`id`, `user_id`, `name`, `config jsonb`, `thumbnail_url`, `created_at`, `updated_at`)
-- [ ] RLS 정책 — 본인 프로젝트만 CRUD
-- [ ] Supabase Storage 버킷 생성 (썸네일 저장용)
+- [ ] `logo_projects` 테이블 마이그레이션:
+  ```
+  id          uuid PK (gen_random_uuid)
+  user_id     uuid FK → auth.users (CASCADE)
+  name        text (default 'Untitled')
+  config      jsonb (LogoState — imageDataUrl/svgContent 제외, 설정값만 ~1-2KB)
+  created_at  timestamptz
+  updated_at  timestamptz
+  ```
+- [ ] `logo_color_presets` 테이블 마이그레이션:
+  ```
+  id          uuid PK (gen_random_uuid)
+  user_id     uuid FK → auth.users (CASCADE)
+  name        text
+  colors      jsonb
+  sort_order  integer
+  created_at  timestamptz
+  ```
+- [ ] RLS 정책 — 본인 데이터만 CRUD (`auth.uid() = user_id`)
+- [ ] 썸네일/이미지 저장 안 함 — config로 캔버스 렌더링
 
 ### Step 4-3. 저장/불러오기 기능
-- [ ] 현재 에디터 상태 → 서버 저장 (config JSON + 썸네일 캡처)
-- [ ] 내 프로젝트 목록 페이지 (썸네일 그리드)
+- [ ] 현재 에디터 상태 → 서버 저장 (config jsonb, imageDataUrl/svgContent 제외)
+- [ ] 내 프로젝트 목록 페이지 (config로 캔버스 렌더링 미리보기)
 - [ ] 프로젝트 불러오기 → 에디터 상태 복원
 - [ ] 프로젝트 이름 변경 / 삭제
 - [ ] 자동 저장 (debounce, 마지막 수정 후 5초)
 
 ### Step 4-4. 컬러 프리셋 서버 마이그레이션
-- [ ] `color_presets` 테이블 또는 `user_settings` jsonb 컬럼
+- [ ] `logo_color_presets` CRUD API (최대 50개)
 - [ ] 기존 localStorage 프리셋 → 서버 마이그레이션 (첫 로그인 시)
 - [ ] 로그인 상태면 서버, 비로그인이면 localStorage fallback
 
-**산출물:** Phase 4 완성. 로그인 + 프로젝트 서버 저장/관리
+**산출물:** Phase 4 완성. Google 로그인 + 프로젝트 서버 저장/관리 (Storage 불필요, 가벼운 구조)
 
 ---
 

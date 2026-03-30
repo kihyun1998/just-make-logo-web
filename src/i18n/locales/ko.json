@@ -12,7 +12,7 @@
     "title": "Just Make Logo"
   },
   "footer": {
-    "copyright": "© 2025 Just Make Logo. All rights reserved.",
+    "copyright": "© 2026 Just Make Logo. All rights reserved.",
     "description": "간단하고 빠르게 로고를 만들어보세요."
   },
   "home": {
@@ -22,9 +22,7 @@
   },
   "login": {
     "title": "로그인",
-    "email": "이메일",
-    "password": "비밀번호",
-    "submit": "로그인",
-    "error": "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요."
+    "google": "Google로 계속하기",
+    "error": "로그인에 실패했습니다. 다시 시도해주세요."
   }
 }
