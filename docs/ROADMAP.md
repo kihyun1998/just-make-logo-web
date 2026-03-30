@@ -181,27 +181,27 @@
 
 ---
 
-## Phase 2 알려진 이슈
+## Phase 2 알려진 이슈 — 모두 해결 ✅
 
-### Critical
-| # | 이슈 | 파일 |
+### Critical (1/1 해결)
+| # | 이슈 | 해결 |
 |---|------|------|
-| C1 | SVG export에서 raw svgContent 직접 삽입 (XSS) | `export-svg.ts:62` |
+| C1 | SVG export XSS | ✅ `sanitize-svg.ts` — 업로드 시 script/event handler/foreignObject 제거 |
 
-### Medium
-| # | 이슈 | 파일 |
+### Medium (5/5 해결)
+| # | 이슈 | 해결 |
 |---|------|------|
-| M1 | textImage/imageOnly SVG export에 이미지 누락 | `export-svg.ts:67-68` |
-| M2 | subText 활성 시 SVG export 폰트 크기 불일치 | `export-svg.ts:112` |
-| M3 | svg-panel Blob URL 미해제 (메모리 누수) | `svg-panel.tsx:15-18` |
-| M4 | 이미지/SVG 로딩 race condition | `logo-canvas.tsx:23-38` |
-| M5 | Font load promise stale closure | `logo-canvas.tsx:59-65` |
+| M1 | SVG export 이미지 누락 | ✅ imageOnly/textImage에서 base64 `<image>` 임베딩 |
+| M2 | subText SVG 폰트 크기 불일치 | ✅ SVG export에서 subText 활성 시 mainAreaH 축소 반영 |
+| M3 | Blob URL 메모리 누수 | ✅ `useEffect` + cleanup `revokeObjectURL` |
+| M4 | 이미지 로딩 race condition | ✅ cancelled 플래그로 stale 이미지 방지 |
+| M5 | Font load stale closure | ✅ cancelled 플래그로 promise 해제 후 렌더 방지 |
 
-### Low
-| # | 이슈 | 파일 |
+### Low (2/2 해결)
+| # | 이슈 | 해결 |
 |---|------|------|
-| L1 | getTextLines 중복 정의 (render-logo.ts + text-utils.ts) | `render-logo.ts:386` |
-| L2 | window resize 시 divider 비율 강제 리셋 | `editor.tsx:19-28` |
+| L1 | getTextLines 중복 | ✅ `render-logo.ts` → `text-utils.ts` import로 통합 |
+| L2 | resize 시 divider 리셋 | ✅ 데스크톱↔모바일 전환 시에만 비율 리셋 |
 
 ---
 
@@ -209,15 +209,15 @@
 
 목표: **설정 저장/공유** + 일괄 내보내기로 실무 생산성 확보
 
-### Step 3-0. Phase 2 이슈 수정 (Phase 3 진입 전 필수)
-- [ ] C1: SVG export svgContent sanitize (script/event handler strip)
-- [ ] M1: textImage/imageOnly SVG export에 이미지 base64 임베딩
-- [ ] M2: SVG export에서 subText 활성 시 메인 텍스트 영역 축소 반영
-- [ ] M3: svg-panel Blob URL → useEffect + cleanup 패턴
-- [ ] M4: 이미지/SVG 로딩 cancelled 플래그로 race condition 방지
-- [ ] M5: Font load promise에 취소 플래그 추가
-- [ ] L1: render-logo.ts getTextLines → text-utils.ts import로 통합
-- [ ] L2: window resize 시 데스크톱↔모바일 전환 때만 비율 리셋
+### Step 3-0. Phase 2 이슈 수정 ✅ (Phase 2에서 모두 해결)
+- [x] C1: SVG sanitize (`sanitize-svg.ts`)
+- [x] M1: SVG export 이미지 base64 임베딩
+- [x] M2: SVG export subText 영역 반영
+- [x] M3: Blob URL useEffect cleanup
+- [x] M4: 이미지 로딩 cancelled 플래그
+- [x] M5: Font load 취소 플래그
+- [x] L1: getTextLines 통합
+- [x] L2: resize 전환 시에만 비율 리셋
 
 ### Step 3-1. 컬러 프리셋
 - [ ] 컬러 프리셋 저장 UI (이름 지정, 반원 미리보기)
