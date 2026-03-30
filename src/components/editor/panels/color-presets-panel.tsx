@@ -14,16 +14,22 @@ export function ColorPresetsPanel() {
 
   const { presets, add, remove, rename } = useColorPresetsStore()
   const [newName, setNewName] = useState('')
-  const [editingName, setEditingName] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
 
   const handleAdd = () => {
-    const name = newName.trim() || `Preset ${presets.length + 1}`
-    if (presets.some((p) => p.name === name)) {
-      alert('Name already exists.')
+    // Auto-generate unique name if empty
+    let name = newName.trim()
+    if (!name) {
+      let counter = presets.length + 1
+      while (presets.some((p) => p.name === `Preset ${counter}`)) counter++
+      name = `Preset ${counter}`
+    }
+    const ok = add({ name, backgroundColor, textColor })
+    if (!ok) {
+      alert('Name already exists or max presets reached (50).')
       return
     }
-    add({ name, backgroundColor, textColor })
     setNewName('')
   }
 
@@ -31,20 +37,23 @@ export function ColorPresetsPanel() {
     set({ backgroundColor: preset.backgroundColor, textColor: preset.textColor, isTransparent: false })
   }
 
-  const handleStartRename = (name: string) => {
-    setEditingName(name)
-    setEditValue(name)
+  const handleStartRename = (id: string, currentName: string) => {
+    setEditingId(id)
+    setEditValue(currentName)
   }
 
   const handleConfirmRename = () => {
-    if (!editingName) return
-    const trimmed = editValue.trim()
-    if (!trimmed || (trimmed !== editingName && presets.some((p) => p.name === trimmed))) {
-      setEditingName(null)
-      return
+    if (!editingId) return
+    const ok = rename(editingId, editValue)
+    if (!ok) {
+      // name empty or duplicate — just cancel
     }
-    rename(editingName, trimmed)
-    setEditingName(null)
+    setEditingId(null)
+  }
+
+  const handleDelete = (id: string, name: string) => {
+    if (!confirm(`Delete "${name}"?`)) return
+    remove(id)
   }
 
   return (
@@ -61,8 +70,9 @@ export function ColorPresetsPanel() {
           placeholder="Preset name"
           className="h-8 flex-1 text-xs"
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          aria-label="New preset name"
         />
-        <Button variant="outline" size="sm" onClick={handleAdd} className="h-8 px-2">
+        <Button variant="outline" size="sm" onClick={handleAdd} className="h-8 px-2" aria-label="Save color preset">
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
@@ -80,35 +90,36 @@ export function ColorPresetsPanel() {
         <div className="flex flex-col gap-1.5">
           {presets.map((preset) => (
             <div
-              key={preset.name}
+              key={preset.id}
               className="flex items-center gap-2 rounded-md border border-border p-1.5"
             >
               {/* Half-circle preview */}
               <button
                 onClick={() => handleApply(preset)}
-                title="Apply preset"
+                aria-label={`Apply preset ${preset.name}`}
                 className="shrink-0"
               >
                 <HalfCirclePreview bg={preset.backgroundColor} fg={preset.textColor} />
               </button>
 
               {/* Name (editable) */}
-              {editingName === preset.name ? (
+              {editingId === preset.id ? (
                 <div className="flex flex-1 items-center gap-1">
                   <Input
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     className="h-6 flex-1 text-xs"
                     autoFocus
+                    aria-label="Rename preset"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleConfirmRename()
-                      if (e.key === 'Escape') setEditingName(null)
+                      if (e.key === 'Escape') setEditingId(null)
                     }}
                   />
-                  <button onClick={handleConfirmRename}>
+                  <button onClick={handleConfirmRename} aria-label="Confirm rename">
                     <Check className="h-3 w-3 text-primary" />
                   </button>
-                  <button onClick={() => setEditingName(null)}>
+                  <button onClick={() => setEditingId(null)} aria-label="Cancel rename">
                     <X className="h-3 w-3 text-muted-foreground" />
                   </button>
                 </div>
@@ -116,24 +127,25 @@ export function ColorPresetsPanel() {
                 <button
                   onClick={() => handleApply(preset)}
                   className="flex-1 truncate text-left text-xs"
+                  aria-label={`Apply preset ${preset.name}`}
                 >
                   {preset.name}
                 </button>
               )}
 
               {/* Actions */}
-              {editingName !== preset.name && (
+              {editingId !== preset.id && (
                 <div className="flex shrink-0 gap-0.5">
                   <button
-                    onClick={() => handleStartRename(preset.name)}
-                    title="Rename"
+                    onClick={() => handleStartRename(preset.id, preset.name)}
+                    aria-label={`Rename ${preset.name}`}
                     className="rounded p-1 hover:bg-muted"
                   >
                     <Pencil className="h-3 w-3 text-muted-foreground" />
                   </button>
                   <button
-                    onClick={() => remove(preset.name)}
-                    title="Delete"
+                    onClick={() => handleDelete(preset.id, preset.name)}
+                    aria-label={`Delete ${preset.name}`}
                     className="rounded p-1 hover:bg-destructive/10"
                   >
                     <Trash2 className="h-3 w-3 text-destructive" />
@@ -148,10 +160,9 @@ export function ColorPresetsPanel() {
   )
 }
 
-/** Half-circle preview: left = background, right = text color */
 function HalfCirclePreview({ bg, fg }: { bg: string; fg: string }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
+    <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0" aria-hidden="true">
       <path d="M12 2 A10 10 0 0 0 12 22 Z" fill={bg} stroke="currentColor" strokeWidth="0.5" opacity="0.8" />
       <path d="M12 2 A10 10 0 0 1 12 22 Z" fill={fg} stroke="currentColor" strokeWidth="0.5" opacity="0.8" />
       <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
