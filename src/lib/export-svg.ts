@@ -79,7 +79,7 @@ export function generateSvg(state: LogoState): string {
   const fontImports = Array.from(fontWeightMap.entries())
     .map(([family, weights]) => {
       const wStr = Array.from(weights).sort((a, b) => a - b).join(';')
-      return `@import url('https://fonts.googleapis.com/css2?family=${family.replace(/ /g, '+')}:wght@${wStr}&display=swap');`
+      return `@import url('https://fonts.googleapis.com/css2?family=${family.replace(/ /g, '+')}:wght@${wStr}&amp;display=swap');`
     }).join('')
   const styleEl = fontImports ? `<style>${fontImports}</style>` : ''
 
