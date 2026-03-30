@@ -108,11 +108,8 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
   if (lines.length === 0) return ''
   const displayLines = state.uppercase ? lines.map(l => l.toUpperCase()) : lines
 
-  // Use binary search-like sizing: approximate based on area
-  const maxLineLen = Math.max(...displayLines.map(l => l.length))
-  const byWidth = maxLineLen > 0 ? areaW / (maxLineLen * 0.6) : areaH
-  const byHeight = areaH / (lines.length * state.lineHeight)
-  const fontSize = Math.max(8, Math.floor(Math.min(byWidth, byHeight)))
+  // Use offscreen canvas + binary search for accurate font sizing
+  const fontSize = fitTextForSvg(displayLines, areaW, areaH, state)
 
   const fontStyle = state.italic ? ' font-style="italic"' : ''
   const textDecoration = state.underline ? ' text-decoration="underline"' : ''
@@ -169,6 +166,49 @@ function generateTextSvg(state: LogoState, w: number, h: number, defs: string[])
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+/**
+ * Use an offscreen canvas to binary-search the exact font size,
+ * matching the Canvas preview rendering.
+ */
+function fitTextForSvg(
+  displayLines: string[],
+  areaW: number,
+  areaH: number,
+  state: LogoState,
+): number {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return Math.max(8, Math.floor(areaH / (displayLines.length * state.lineHeight)))
+
+  const fontStyle = state.italic ? 'italic ' : ''
+  let lo = 1, hi = Math.ceil(areaH), best = 1
+
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2)
+    ctx.font = `${fontStyle}${state.fontWeight} ${mid}px "${state.fontFamily}"`
+
+    let maxWidth = 0
+    for (const line of displayLines) {
+      let measured: number
+      if (state.letterSpacing !== 0) {
+        measured = 0
+        for (let i = 0; i < line.length; i++) {
+          measured += ctx.measureText(line[i]).width
+          if (i < line.length - 1) measured += state.letterSpacing
+        }
+      } else {
+        measured = ctx.measureText(line).width
+      }
+      if (measured > maxWidth) maxWidth = measured
+    }
+
+    const totalH = displayLines.length === 1 ? mid : mid + mid * state.lineHeight * (displayLines.length - 1)
+    if (maxWidth <= areaW && totalH <= areaH) { best = mid; lo = mid + 1 } else { hi = mid - 1 }
+  }
+
+  return best
 }
 
 function directionToSvgCoords(dir: GradientDirection) {
