@@ -219,10 +219,10 @@
 - [x] L1: getTextLines 통합
 - [x] L2: resize 전환 시에만 비율 리셋
 
-### Step 3-1. 컬러 프리셋
-- [ ] 컬러 프리셋 저장 UI (이름 지정, 반원 미리보기)
-- [ ] 프리셋 목록 표시 / 적용 / 이름 변경 / 삭제
-- [ ] localStorage 영구 저장
+### Step 3-1. 컬러 프리셋 ✅
+- [x] 컬러 프리셋 저장 UI (이름 지정, 반원 미리보기)
+- [x] 프리셋 목록 표시 / 적용 / 이름 변경 / 삭제
+- [x] localStorage 영구 저장 (최대 50개, try/catch, ID 기반)
 
 ### Step 3-2. 전체 설정 JSON
 - [ ] 현재 설정 → JSON 파일 내보내기 (Pretty-printed)
