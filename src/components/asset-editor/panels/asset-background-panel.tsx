@@ -4,6 +4,7 @@ import { useAssetStore } from '@/store/asset-store'
 import { Slider } from '@/components/ui/slider'
 import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { ColorPickerField } from '@/components/editor/color-picker-field'
+import { RadialControls, buildCssGradient } from '@/components/ui/radial-controls'
 import { QUICK_COLORS, GRADIENT_PRESETS } from '@/data/presets'
 import type { GradientDirection, GradientType } from '@/types/logo'
 
@@ -24,6 +25,9 @@ export function AssetBackgroundPanel() {
   const gradientType = useAssetStore((s) => s.gradientType)
   const gradientDirection = useAssetStore((s) => s.gradientDirection)
   const gradientStops = useAssetStore((s) => s.gradientStops)
+  const gradientCenterX = useAssetStore((s) => s.gradientCenterX)
+  const gradientCenterY = useAssetStore((s) => s.gradientCenterY)
+  const gradientRadius = useAssetStore((s) => s.gradientRadius)
   const set = useAssetStore((s) => s.set)
 
   return (
@@ -100,6 +104,17 @@ export function AssetBackgroundPanel() {
             </div>
           )}
 
+          {/* Radial center & radius */}
+          {gradientType === 'radial' && (
+            <RadialControls
+              centerX={gradientCenterX}
+              centerY={gradientCenterY}
+              radius={gradientRadius}
+              gradientStops={gradientStops}
+              onChange={set}
+            />
+          )}
+
           {/* Color stops */}
           {gradientStops.map((stop, i) => (
             <div key={i} className="flex flex-col gap-1.5">
@@ -150,7 +165,7 @@ export function AssetBackgroundPanel() {
           <div
             className="h-6 w-full rounded-md border border-border"
             style={{
-              background: buildCssGradient(gradientType, gradientDirection, gradientStops),
+              background: buildCssGradient(gradientType, gradientDirection, gradientStops, gradientCenterX, gradientCenterY, gradientRadius),
             }}
           />
 
@@ -176,19 +191,4 @@ export function AssetBackgroundPanel() {
       )}
     </section>
   )
-}
-
-function buildCssGradient(
-  type: GradientType,
-  direction: GradientDirection,
-  stops: { color: string; position: number }[],
-): string {
-  const colorStops = stops.map((s) => `${s.color} ${s.position * 100}%`).join(', ')
-  if (type === 'radial') return `radial-gradient(circle, ${colorStops})`
-  const angleMap: Record<GradientDirection, number> = {
-    topToBottom: 180, bottomToTop: 0, leftToRight: 90, rightToLeft: 270,
-    topLeftToBottomRight: 135, topRightToBottomLeft: 225,
-    bottomLeftToTopRight: 45, bottomRightToTopLeft: 315,
-  }
-  return `linear-gradient(${angleMap[direction]}deg, ${colorStops})`
 }

@@ -105,11 +105,9 @@ export interface LogoState {
   gradientStops: GradientStop[]
 
   // Radial advanced (후순위)
-  gradientCenterX?: number
-  gradientCenterY?: number
-  gradientRadius?: number
-  gradientFocalX?: number
-  gradientFocalY?: number
+  gradientCenterX?: number  // 0~1, default 0.5
+  gradientCenterY?: number  // 0~1, default 0.5
+  gradientRadius?: number   // 0.1~1.5, default 0.5
 
   // Image
   imageDataUrl: string | null // base64 data URL

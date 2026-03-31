@@ -349,8 +349,13 @@
 - [x] 배치 내보내기(ZIP)에 ICO 포함 지원
 
 ### Step 6-2. Radial 그라디언트 고급
-- [ ] Radial 그라디언트 중심점 X/Y 2D 드래그 UI
-- [ ] 반경/초점 슬라이더
+- [x] `gradientCenterX/Y`, `gradientRadius` 상태 필드 초기화 (기본값: 0.5)
+- [x] 중심점 X/Y 2D 드래그 UI (미니 캔버스 오버레이, Radial 선택 시에만 표시)
+- [x] 반경 슬라이더 (0.1~1.5, 기본값 0.5)
+- [x] `canvas-utils.ts` `buildCanvasGradient` — 중심점/반경 파라미터 적용
+- [x] `export-svg.ts` — `<radialGradient>` cx/cy/r 동적 적용
+- [x] 에셋 에디터 gradient 패널에도 동일 UI 적용
+- [x] CSS 미리보기 (`buildCssGradient`)에 중심점/반경 반영
 
 ### Step 6-3. 접근성
 - [ ] 슬라이더 ARIA (`aria-label`, `aria-valuemin/max/now`)

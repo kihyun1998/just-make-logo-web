@@ -22,6 +22,9 @@ function stateSelector(s: AssetStore): AssetEditorState {
     gradientType: s.gradientType,
     gradientDirection: s.gradientDirection,
     gradientStops: s.gradientStops,
+    gradientCenterX: s.gradientCenterX,
+    gradientCenterY: s.gradientCenterY,
+    gradientRadius: s.gradientRadius,
     exportFormat: s.exportFormat,
   }
 }

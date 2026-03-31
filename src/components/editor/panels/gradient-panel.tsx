@@ -4,6 +4,7 @@ import { useLogoStore } from '@/store/logo-store'
 import { Slider } from '@/components/ui/slider'
 import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { ColorPickerField } from '../color-picker-field'
+import { RadialControls, buildCssGradient } from '@/components/ui/radial-controls'
 import { GRADIENT_PRESETS } from '@/data/presets'
 import type { GradientDirection, GradientType } from '@/types/logo'
 
@@ -23,6 +24,9 @@ export function GradientPanel() {
   const gradientType = useLogoStore((s) => s.gradientType)
   const gradientDirection = useLogoStore((s) => s.gradientDirection)
   const gradientStops = useLogoStore((s) => s.gradientStops)
+  const gradientCenterX = useLogoStore((s) => s.gradientCenterX ?? 0.5)
+  const gradientCenterY = useLogoStore((s) => s.gradientCenterY ?? 0.5)
+  const gradientRadius = useLogoStore((s) => s.gradientRadius ?? 0.5)
   const set = useLogoStore((s) => s.set)
 
   return (
@@ -73,6 +77,17 @@ export function GradientPanel() {
                 </button>
               ))}
             </div>
+          )}
+
+          {/* Radial center & radius */}
+          {gradientType === 'radial' && (
+            <RadialControls
+              centerX={gradientCenterX}
+              centerY={gradientCenterY}
+              radius={gradientRadius}
+              gradientStops={gradientStops}
+              onChange={(v) => set(v)}
+            />
           )}
 
           {/* Color stops with position */}
@@ -136,7 +151,7 @@ export function GradientPanel() {
           <div
             className="h-6 w-full rounded-md border border-border"
             style={{
-              background: buildCssGradient(gradientType, gradientDirection, gradientStops),
+              background: buildCssGradient(gradientType, gradientDirection, gradientStops, gradientCenterX, gradientCenterY, gradientRadius),
             }}
           />
 
@@ -162,31 +177,4 @@ export function GradientPanel() {
       )}
     </div>
   )
-}
-
-function buildCssGradient(
-  type: GradientType,
-  direction: GradientDirection,
-  stops: { color: string; position: number }[],
-): string {
-  const colorStops = stops.map((s) => `${s.color} ${s.position * 100}%`).join(', ')
-  if (type === 'radial') {
-    return `radial-gradient(circle, ${colorStops})`
-  }
-  const angle = directionToAngle(direction)
-  return `linear-gradient(${angle}deg, ${colorStops})`
-}
-
-function directionToAngle(dir: GradientDirection): number {
-  const map: Record<GradientDirection, number> = {
-    topToBottom: 180,
-    bottomToTop: 0,
-    leftToRight: 90,
-    rightToLeft: 270,
-    topLeftToBottomRight: 135,
-    topRightToBottomLeft: 225,
-    bottomLeftToTopRight: 45,
-    bottomRightToTopLeft: 315,
-  }
-  return map[dir]
 }

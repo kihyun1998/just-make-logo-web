@@ -91,6 +91,9 @@ function drawAssetBackground(
       gradientType: editorState.gradientType,
       gradientDirection: editorState.gradientDirection,
       gradientStops: stops,
+      gradientCenterX: editorState.gradientCenterX,
+      gradientCenterY: editorState.gradientCenterY,
+      gradientRadius: editorState.gradientRadius,
     }, w, h)
   } else {
     ctx.fillStyle = editorState.backgroundColor

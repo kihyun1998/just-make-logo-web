@@ -189,9 +189,8 @@ const fontWeights: Record<string, number[]> = {
 - BottomLeft → TopRight, BottomRight → TopLeft
 
 **Radial 고급 옵션 (후순위):**
-- 중심점 (center) X/Y 좌표 조절
-- 반경 (radius) 조절
-- 초점 (focal point) 위치 조절
+- 중심점 (center) X/Y 좌표 조절 (0~1, 기본 0.5)
+- 반경 (radius) 조절 (0.1~1.5, 기본 0.5)
 
 **프리셋 그라디언트 10종:**
 
@@ -517,7 +516,7 @@ const fontWeights: Record<string, number[]> = {
 - [ ] 컬러 프리셋 저장/관리 (localStorage)
 - [ ] 전체 설정 JSON 저장/불러오기
 - [ ] 그룹 일괄 내보내기 + ZIP 다운로드
-- [ ] Radial 그라디언트 고급 옵션 (중심점/반경/초점)
+- [x] Radial 그라디언트 고급 옵션 (중심점/반경)
 - [ ] 드래그 앤 드롭 이미지/SVG 업로드
 - [ ] 클립보드 복사
 
@@ -598,11 +597,9 @@ interface LogoState {
   gradientStops: Array<{ color: string; position: number }>  // 2~3개
 
   // Radial 고급 (후순위)
-  gradientCenterX?: number            // 0~1
-  gradientCenterY?: number            // 0~1
-  gradientRadius?: number
-  gradientFocalX?: number
-  gradientFocalY?: number
+  gradientCenterX: number             // 0~1, 기본 0.5
+  gradientCenterY: number             // 0~1, 기본 0.5
+  gradientRadius: number              // 0.1~1.5, 기본 0.5
 
   // 이미지
   imageFile: File | null

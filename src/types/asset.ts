@@ -107,6 +107,9 @@ export interface AssetEditorState {
   gradientType: GradientType
   gradientDirection: GradientDirection
   gradientStops: GradientStop[]
+  gradientCenterX: number
+  gradientCenterY: number
+  gradientRadius: number
 
   // Device frame overrides keyed by TemplateImageSlot.id
   deviceFrameOverrides: Record<string, DeviceFrameOverride>

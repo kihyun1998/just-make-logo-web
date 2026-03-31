@@ -14,8 +14,11 @@ export function generateSvg(state: LogoState): string {
     if (state.useGradient && state.gradientStops.length >= 2) {
       const gradId = 'bg-grad'
       if (state.gradientType === 'radial') {
+        const cx = ((state.gradientCenterX ?? 0.5) * 100).toFixed(1)
+        const cy = ((state.gradientCenterY ?? 0.5) * 100).toFixed(1)
+        const r = ((state.gradientRadius ?? 0.5) * 100).toFixed(1)
         const stops = state.gradientStops.map(s => `<stop offset="${s.position * 100}%" stop-color="${esc(s.color)}"/>`).join('')
-        defs.push(`<radialGradient id="${gradId}" cx="50%" cy="50%" r="50%">${stops}</radialGradient>`)
+        defs.push(`<radialGradient id="${gradId}" cx="${cx}%" cy="${cy}%" r="${r}%">${stops}</radialGradient>`)
       } else {
         const { x1, y1, x2, y2 } = directionToSvgCoords(state.gradientDirection)
         const stops = state.gradientStops.map(s => `<stop offset="${s.position * 100}%" stop-color="${esc(s.color)}"/>`).join('')

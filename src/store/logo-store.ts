@@ -49,6 +49,9 @@ export const DEFAULT_LOGO_STATE: LogoState = {
     { color: '#FF512F', position: 0 },
     { color: '#F09819', position: 1 },
   ],
+  gradientCenterX: 0.5,
+  gradientCenterY: 0.5,
+  gradientRadius: 0.5,
 
   imageDataUrl: null,
   imagePosition: 'top',

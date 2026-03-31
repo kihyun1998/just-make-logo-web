@@ -35,12 +35,17 @@ export interface GradientConfig {
   gradientType: GradientType
   gradientDirection: GradientDirection
   gradientStops: GradientStop[]
+  gradientCenterX?: number  // 0~1, default 0.5
+  gradientCenterY?: number  // 0~1, default 0.5
+  gradientRadius?: number   // 0.1~1.5, default 0.5
 }
 
 export function buildCanvasGradient(ctx: CanvasRenderingContext2D, config: GradientConfig, w: number, h: number): CanvasGradient {
   let gradient: CanvasGradient
   if (config.gradientType === 'radial') {
-    const cx = w / 2, cy = h / 2, r = Math.max(w, h) / 2
+    const cx = (config.gradientCenterX ?? 0.5) * w
+    const cy = (config.gradientCenterY ?? 0.5) * h
+    const r = (config.gradientRadius ?? 0.5) * Math.max(w, h)
     gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
   } else {
     const { x0, y0, x1, y1 } = directionToCoords(config.gradientDirection, w, h)

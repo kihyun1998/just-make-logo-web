@@ -25,6 +25,9 @@ export const DEFAULT_ASSET_STATE: AssetEditorState = {
     { color: '#667EEA', position: 0 },
     { color: '#764BA2', position: 1 },
   ],
+  gradientCenterX: 0.5,
+  gradientCenterY: 0.5,
+  gradientRadius: 0.5,
 
   exportFormat: 'png',
 }
@@ -80,6 +83,9 @@ export const useAssetStore = create<AssetStore>()(
               state.gradientType = first.gradientType
               state.gradientDirection = first.gradientDirection
               state.gradientStops = first.gradientStops
+              state.gradientCenterX = 0.5
+              state.gradientCenterY = 0.5
+              state.gradientRadius = 0.5
               state.textOverrides = {}
               state.textStyleOverrides = {}
               state.imageOverrides = {}
@@ -150,6 +156,9 @@ export const useAssetStore = create<AssetStore>()(
           state.gradientType = tmpl.gradientType
           state.gradientDirection = tmpl.gradientDirection
           state.gradientStops = tmpl.gradientStops
+          state.gradientCenterX = 0.5
+          state.gradientCenterY = 0.5
+          state.gradientRadius = 0.5
           state.textOverrides = {}
           state.textStyleOverrides = {}
           state.imageOverrides = {}
