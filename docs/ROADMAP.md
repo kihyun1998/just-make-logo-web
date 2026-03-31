@@ -1,7 +1,7 @@
 # Just Make Logo - 구현 로드맵
 
 > 기준 문서: `docs/SPEC_TEXT_LOGO.md`
-> 현재 상태: **Phase 3 완료, Phase 4 진행 중** (Step 4-1 Supabase + 회원가입 완료)
+> 현재 상태: **Phase 4 완료 (저장 보류), Phase 5 진행 예정**
 
 ---
 
@@ -242,7 +242,7 @@
 
 ## Phase 4: Supabase 연동 — 서버 저장
 
-목표: **로그인 + 프로젝트 서버 저장/불러오기**로 로컬 의존 제거
+목표: **로그인 + 인증 기반 기능** (저장/불러오기는 무료 티어 용량 고려하여 보류)
 
 > **테이블 네이밍:** 멀티앱 공유 Supabase이므로 `logo_` prefix 사용
 > (다른 서비스: `qr_`, `scene_` 등 직관적 prefix)
@@ -278,19 +278,11 @@
 - [x] RLS 정책 — 본인 데이터만 CRUD (`auth.uid() = user_id`, UPDATE WITH CHECK 포함)
 - [x] 썸네일/이미지 저장 안 함 — config로 캔버스 렌더링
 
-### Step 4-3. 저장/불러오기 기능
-- [ ] 현재 에디터 상태 → 서버 저장 (config jsonb, imageDataUrl/svgContent 제외)
-- [ ] 내 프로젝트 목록 페이지 (config로 캔버스 렌더링 미리보기)
-- [ ] 프로젝트 불러오기 → 에디터 상태 복원
-- [ ] 프로젝트 이름 변경 / 삭제
-- [ ] 자동 저장 (debounce, 마지막 수정 후 5초)
+### Step 4-3 ~ 4-4. 옵션 저장/불러오기 + 컬러 프리셋 서버 마이그레이션 ⏸️ 보류
+> **사유:** Supabase 무료 티어, 멀티앱 공유 DB — 용량/요청 부담 고려하여 후순위로 이동
+> **테이블은 이미 생성됨** (`logo_projects`, `logo_color_presets`) — 필요 시 바로 구현 가능
 
-### Step 4-4. 컬러 프리셋 서버 마이그레이션
-- [ ] `logo_color_presets` CRUD API (최대 50개)
-- [ ] 기존 localStorage 프리셋 → 서버 마이그레이션 (첫 로그인 시)
-- [ ] 로그인 상태면 서버, 비로그인이면 localStorage fallback
-
-**산출물:** Phase 4 완성. Google 로그인 + 프로젝트 서버 저장/관리 (Storage 불필요, 가벼운 구조)
+**산출물:** Phase 4 완성. Google 로그인 + 회원가입 (저장 기능은 보류)
 
 ---
 
@@ -298,16 +290,18 @@
 
 목표: **안드로이드/iOS 스토어 배포에 필요한 그래픽 에셋**을 템플릿 기반으로 생성
 
-### Step 5-1. 에셋 타입 정의 + 템플릿 시스템
-- [ ] 스토어 에셋 타입 정의 (Feature Graphic, 스크린샷 프레임, 프로모 배너 등)
-- [ ] 에셋 크기 규격 정리:
+### Step 5-1. 에셋 타입 정의 + 템플릿 시스템 ✅
+- [x] 스토어 에셋 타입 정의 (Feature Graphic, 스크린샷 프레임, 프로모 배너 등) — `src/types/asset.ts`
+- [x] 에셋 크기 규격 정리 (12종) — `src/data/asset-specs.ts`:
   - Google Play Feature Graphic: 1024×500
   - Google Play 스크린샷: 폰 (1080×1920), 태블릿 7" (1200×1920), 태블릿 10" (1600×2560)
   - Google Play TV 배너: 1280×720
-  - Apple App Store 스크린샷: iPhone 6.7" (1290×2796), iPad 12.9" (2048×2732)
-  - Apple App Store 프로모: 1024×1024
-- [ ] 템플릿 데이터 구조 (배경 + 텍스트 영역 + 이미지 슬롯 + 레이아웃)
-- [ ] 에셋 에디터 라우트 (`/editor/asset`)
+  - Apple App Store 스크린샷: iPhone 6.7" (1290×2796), 6.5" (1284×2778), 5.5" (1242×2208), iPad 12.9" (2048×2732)
+  - General: Wide 1920×1080, Square 1080×1080
+- [x] 템플릿 데이터 구조 (배경 + 텍스트 영역 + 이미지 슬롯 + 레이아웃) — `src/data/asset-templates.ts` (마케팅 3종 + 스크린샷 3종)
+- [x] 에셋 에디터 라우트 (`/editor/asset`) — `app/editor/asset/page.tsx`
+- [x] Canvas 공통 유틸 추출 (`src/lib/canvas-utils.ts`) + 에셋 렌더링 엔진 (`src/lib/render-asset.ts`)
+- [x] Zustand 스토어 (`src/store/asset-store.ts`) + 에디터 뷰/컴포넌트
 
 ### Step 5-2. 에셋 에디터 UI
 - [ ] 에셋 타입 선택 (플랫폼별 카테고리)
@@ -364,9 +358,9 @@
 | **Phase 1** (MVP) ✅ | 7 스텝 | Canvas 렌더러, FittedBox, 폰트 로딩 |
 | **Phase 2** (모드 확장) ✅ | 7 스텝 | 내보내기 리팩터, Text+Image 레이아웃, SVG 직접 생성 |
 | **Phase 3** (일괄+클립보드) ✅ | 3 스텝 | ZIP 생성, Clipboard API |
-| **Phase 4** (Supabase) | 4 스텝 | DB 스키마, RLS, 자동저장, 마이그레이션 |
+| **Phase 4** (Supabase) ✅ | 2 스텝 완료, 2 보류 | DB 스키마, RLS, 인증 (저장 기능 보류) |
 | **Phase 5** (스토어 에셋) | 4 스텝 | 템플릿 시스템, 디바이스 목업, 멀티 텍스트 블록 |
-| **Phase 6** (후순위) | 4 스텝 | URL 인코딩, ICO 생성, 접근성 |
+| **Phase 6** (후순위) | 4+ 스텝 | URL 인코딩, ICO 생성, 접근성, 옵션 저장/불러오기 |
 
 ### 의존성 그래프
 
@@ -374,9 +368,9 @@
 Phase 1 ✅
   └→ Phase 2 ✅
        └→ Phase 3 ✅
-            └→ Phase 4 (Supabase 연동) ★ Step 4-1, 4-2 완료, 4-3, 4-4 진행 중
-                 ├→ Phase 5 (스토어 에셋) — Phase 4 저장 기능 활용
-                 └→ Phase 6 (후순위) — 독립적, 언제든 가능
+            └→ Phase 4 (Supabase 연동) ✅ Step 4-1, 4-2 완료 / 4-3, 4-4 보류
+                 ├→ Phase 5 (스토어 에셋) ★ 다음 진행
+                 └→ Phase 6 (후순위) — 독립적, 언제든 가능 (보류된 4-3, 4-4 포함)
 ```
 
 ### 핵심 리스크
@@ -387,7 +381,7 @@ Phase 1 ✅
 | FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 반영 완료 |
 | Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 전체 한 번에 로드 방식 사용 중, lazy load 개선 가능 |
 | SVG 내보내기 폰트 임베딩 | Step 2-6 | `@import` URL 방식 우선, Base64 임베딩은 후순위 |
-| Supabase RLS + 자동저장 충돌 | Step 4-3 | debounce + optimistic update + conflict resolution |
+| Supabase 무료 티어 용량 (멀티앱 공유 DB) | Step 4-3/4-4 | 저장 기능 보류, 필요 시 localStorage 우선 |
 | 디바이스 목업 SVG 라이선스 | Step 5-3 | 자체 제작 또는 MIT 라이선스 에셋 사용 |
 | 스토어 에셋 규격 변경 | Step 5-1 | Google/Apple 공식 문서 기준, 업데이트 대응 필요 |
 | ICO 멀티사이즈 생성 | Step 6-2 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
