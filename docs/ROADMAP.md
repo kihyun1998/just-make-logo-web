@@ -367,22 +367,22 @@
 
 ## Phase 7: 결제 + 라이선싱
 
-목표: **Free / Pro 요금제 도입**, 멀티앱 entitlement 시스템, 결제 연동
+목표: **Free / Pro 요금제 도입**, Just Apps 통합 구독, 멀티앱 entitlement 시스템, 결제 연동
 
 > **순서 변경 사유:** 저장/불러오기(이미지 Storage 포함)는 유료 기능으로 제공 예정.
 > 결제 인프라를 먼저 깔아야 저장 기능 구현 시 라이선스 체크를 바로 넣을 수 있음.
 >
 > **아키텍처:** 구독(subscription) + 권한(entitlement) 분리 패턴.
-> Just Apps는 멀티앱 플랫폼이므로 개별 앱 구독 / 번들 구독이 공존.
 > 각 앱은 entitlement만 체크 — 구독 종류(결제/관리자/프로모/체험)를 몰라도 됨.
 >
 > **결제:** Lemon Squeezy (MoR — 사업자등록 불필요)
 >
-> **상품 전략:** 현재 앱이 1개(Just Make Logo)뿐이므로 **최소 구성으로 시작**.
-> - 지금: Product 1개 (Just Make Logo Pro) + Variant 2개 (월간/연간)
-> - 나중에 2번째 앱 출시 시: 해당 앱 Product 추가 + Bundle Product 추가
-> - `PLAN_ENTITLEMENTS` 코드 상수 한 줄 추가로 확장 — DB 스키마 변경 불필요
-> - Bundle을 미리 만들면 구매 가능한 상품은 있는데 쓸 앱이 없는 상황이 되므로 만들지 않음
+> **상품 전략: Just Apps 통합 구독**
+> - 앱별 개별 구독 없이 **Just Apps Pro 하나로 모든 앱의 Pro 기능 해금**
+> - 각 앱(Logo, QR 등)의 기본 기능은 무료, 구독하면 서버 저장/프리셋 동기화 등 Pro 기능 사용 가능
+> - Product 1개 (Just Apps Pro) + Variant 2개 (월간/연간)
+> - 향후 상위 티어(`just_apps_ult`) 추가 가능 — `PLAN_ENTITLEMENTS` 상수 한 줄 추가로 확장, DB 스키마 변경 불필요
+> - 앱이 추가될수록 구독 가치가 자연히 올라감 — 사용자 입장에서 "구독하면 다 쓸 수 있다"가 직관적
 >
 > **보안 원칙:**
 > - 구독/권한 테이블은 **서버(service_role)만 쓰기** — 클라이언트는 읽기만 허용
@@ -399,7 +399,7 @@
   ```
   id                          uuid PK (gen_random_uuid)
   user_id                     uuid FK → auth.users
-  plan_id                     text NOT NULL   -- 'logo_pro', 'bundle' 등
+  plan_id                     text NOT NULL   -- 'just_apps_pro', 향후 'just_apps_ult' 등
   status                      text NOT NULL   -- CHECK ('active','past_due','canceled','expired','paused','trialing')
   provider                    text NOT NULL   -- 'lemonsqueezy', 'manual'
   provider_subscription_id    text            -- Lemon Squeezy subscription ID
@@ -438,18 +438,19 @@
 - [ ] 플랜 → 앱 매핑은 코드 상수로 관리 (DB 테이블 불필요):
   ```ts
   const PLAN_ENTITLEMENTS = {
-    logo_pro: ['logo'],
-    bundle: ['logo', 'qr', 'scene'],
+    just_apps_pro: ['logo', 'qr', 'scene'],  // 통합 구독 — 모든 앱 Pro 기능
+    // just_apps_ult: ['logo', 'qr', 'scene', ...],  // 향후 상위 티어
   }
   ```
 
 ### Step 7-1.5. Lemon Squeezy 사전 준비 (외부 작업)
 - [ ] **Lemon Squeezy 계정 생성** — [lemonsqueezy.com](https://lemonsqueezy.com) 가입 + 본인 인증
 - [ ] **스토어 생성** — 스토어명: "Just Apps" (또는 원하는 이름), 통화: USD
-- [ ] **상품 생성** — "Just Make Logo Pro"
+- [ ] **상품 생성** — "Just Apps Pro" (통합 구독)
   - Variant 1: Monthly ($X.XX/월) — Subscription, 월간 반복 결제
   - Variant 2: Yearly ($X.XX/년) — Subscription, 연간 반복 결제 (월간 대비 할인)
   - 가격은 경쟁 서비스 참고하여 결정 (예: 월 $5~10, 연 $50~100)
+  - 향후 상위 티어(Ultimate) 추가 시 별도 Product 생성
 - [ ] **API Key 발급** — Settings → API → Create API Key (전체 권한)
 - [ ] **Webhook 설정** — Settings → Webhooks → 엔드포인트 등록:
   - URL: `https://{도메인}/api/webhooks/lemon-squeezy`
@@ -480,7 +481,7 @@
   3. 서버에서 Lemon Squeezy API 호출 → `custom_data.user_id`에 인증된 ID 주입한 Checkout URL 생성
   4. 생성된 URL을 클라이언트에 반환 → Checkout Overlay로 열기
   - ⚠️ 클라이언트에서 직접 `custom_data`를 설정하면 user_id 위조 가능 — 반드시 서버에서 생성
-- [ ] 구독 생성 / 취소 / 갱신 / 업그레이드(차액 결제) 플로우
+- [ ] 구독 생성 / 취소 / 갱신 플로우 (향후 Pro→Ultimate 업그레이드 시 차액 결제)
 - [ ] **Webhook 엔드포인트** (`app/api/webhooks/lemon-squeezy/route.ts`):
   - **HMAC-SHA256 서명 검증** — `X-Signature` 헤더 + raw body로 검증, 실패 시 403 반환
   - **Idempotency** — `provider_subscription_id` 기준 upsert, `updated_at` 타임스탬프 비교하여 오래된 이벤트 무시
@@ -495,7 +496,7 @@
     | `subscription_payment_failed` | status → 'past_due', 유저에게 결제 실패 알림 트리거 |
     | `subscription_payment_recovered` | status → 'active' 복구 |
     | `order_refunded` | entitlement 회수, subscription status 업데이트 |
-  - **플랜 변경 시 원자적 entitlement 전환** — 트랜잭션으로 기존 entitlement 만료 + 새 entitlement 생성 (일시적 권한 공백 방지)
+  - **플랜 변경 시 원자적 entitlement 전환** — 향후 Pro→Ultimate 업그레이드 시, 트랜잭션으로 기존 entitlement 만료 + 새 entitlement 생성 (일시적 권한 공백 방지)
   - **에러 로깅/알림** — webhook 처리 실패 시 `just_webhook_logs` 테이블에 기록 + Slack/Discord 알림 (결제 webhook 실패는 매출 직결)
 - [ ] **Checkout 완료 후 webhook 지연 대응**:
   - Checkout Overlay 완료 콜백에서 polling (3초 간격, 최대 30초)
@@ -529,7 +530,7 @@
 ### Step 7-5. 구독 관리 UI
 - [ ] 마이페이지(`MyPageView`)에 구독 현황 표시 (플랜, 다음 결제일, 상태, 취소 예정일)
   - 초기에는 앱 로컬 구현, 안정화 후 `@just-apps/auth` 패키지에 `SubscriptionView`로 추출
-- [ ] 플랜 변경 (개별 → 번들 업그레이드, 차액 결제)
+- [ ] 플랜 변경 (향후 Pro → Ultimate 업그레이드, 차액 결제)
 - [ ] 구독 취소 플로우 (취소 사유 수집 + 확인 모달 + canceled_at 기록)
 - [ ] Lemon Squeezy Customer Portal 연동 (결제 수단 변경, 영수증 조회)
 - [ ] 결제 실패 시 재결제 유도 배너 / 결제 수단 업데이트 안내
@@ -550,7 +551,7 @@
   created_at    timestamptz
   ```
 
-**산출물:** Phase 7 완성. Lemon Squeezy 결제, 멀티앱 entitlement 시스템, HMAC 서명 검증, idempotent webhook 처리, 관리자/프로모/체험 지원, 결제 실패 대응, 구독 관리 UI, webhook 로깅/모니터링
+**산출물:** Phase 7 완성. Just Apps 통합 구독 (Lemon Squeezy), 멀티앱 entitlement 시스템, HMAC 서명 검증, idempotent webhook 처리, 관리자/프로모/체험 지원, 결제 실패 대응, 구독 관리 UI, webhook 로깅/모니터링
 
 ---
 
@@ -602,7 +603,7 @@
 | **Phase 4** (Supabase) ✅ | 2 스텝 완료, 2 보류 | DB 스키마, RLS, 인증 (저장 기능 보류) |
 | **Phase 5** (스토어 에셋) ✅ | 4 스텝 | 템플릿 시스템, 디바이스 목업, 멀티 텍스트 블록 |
 | **Phase 6** (후순위) | 4+ 스텝 | URL 인코딩, ICO 생성, 접근성 |
-| **Phase 7** (결제/라이선싱) | 6 스텝 | 구독+entitlement 스키마, Lemon Squeezy, HMAC webhook, 권한 게이팅, trial 중복 방지, 마이그레이션/테스트 |
+| **Phase 7** (결제/라이선싱) | 6 스텝 | Just Apps 통합 구독, entitlement 스키마, Lemon Squeezy, HMAC webhook, 권한 게이팅, trial 중복 방지 |
 | **Phase 8** (저장/불러오기) | 4 스텝 | Storage 이미지 업로드, 설정값 저장/불러오기, 프리셋 동기화 |
 
 ### 의존성 그래프
@@ -614,7 +615,7 @@ Phase 1 ✅
             └→ Phase 4 (Supabase 연동) ✅ Step 4-1, 4-2 완료
                  ├→ Phase 5 (스토어 에셋) ✅ Step 5-1 ~ 5-3 + 5-2.5 완료
                  ├→ Phase 6 (후순위) — 독립적, 언제든 가능
-                 └→ Phase 7 (결제/라이선싱) — Phase 4 기반, 구독 상태 DB 관리
+                 └→ Phase 7 (결제/라이선싱) — Phase 4 기반, Just Apps 통합 구독
                       └→ Phase 8 (저장/불러오기) — Phase 7 기반, 유료 기능으로 게이팅 + Storage 이미지
 ```
 
