@@ -18,7 +18,8 @@
   "home": {
     "title": "Create Your Own Logo",
     "subtitle": "AI-Powered Logo Generation Service",
-    "cta": "Start Making Logo"
+    "cta": "Start Making Logo",
+    "ctaAsset": "Create Store Assets"
   },
   "login": {
     "title": "Login",

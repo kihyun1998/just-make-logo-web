@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Moon, Sun, Globe } from "lucide-react";
 import { UserMenu } from "@just-apps/auth";
@@ -24,15 +24,46 @@ export function Header() {
   const signOut = useAuth((s) => s.signOut);
   const router = useRouter();
 
+  const pathname = usePathname();
   const currentLang = i18n.language.startsWith("ko") ? "ko" : "en";
   const locale = i18nToLocale(i18n.language);
+
+  const isEditorRoute = pathname.startsWith("/editor");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="text-lg font-bold">
-          {t("header.title")}
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-lg font-bold">
+            {t("header.title")}
+          </Link>
+
+          {/* Editor mode tabs */}
+          {isEditorRoute && (
+            <nav className="flex items-center gap-1">
+              <Link
+                href="/editor"
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  pathname === "/editor"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                Logo
+              </Link>
+              <Link
+                href="/editor/asset"
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  pathname === "/editor/asset"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                Asset
+              </Link>
+            </nav>
+          )}
+        </div>
 
         <div className="flex items-center gap-1">
           {/* Language Switcher */}
