@@ -13,12 +13,14 @@ function stateSelector(s: AssetStore): AssetEditorState {
     selectedSpecId: s.selectedSpecId,
     selectedTemplateId: s.selectedTemplateId,
     textOverrides: s.textOverrides,
+    textStyleOverrides: s.textStyleOverrides,
     imageOverrides: s.imageOverrides,
     backgroundColor: s.backgroundColor,
     useGradient: s.useGradient,
     gradientType: s.gradientType,
     gradientDirection: s.gradientDirection,
     gradientStops: s.gradientStops,
+    exportFormat: s.exportFormat,
   }
 }
 
@@ -27,7 +29,7 @@ export function AssetCanvas() {
   const state = useAssetStore(useShallow(stateSelector))
   const [loadedImages, setLoadedImages] = useState<Record<string, HTMLImageElement>>({})
 
-  // Load images from imageOverrides
+  // Load images from imageOverrides — incrementally per slot
   useEffect(() => {
     let cancelled = false
     const entries = Object.entries(state.imageOverrides).filter(
@@ -39,21 +41,11 @@ export function AssetCanvas() {
       return
     }
 
-    const loaded: Record<string, HTMLImageElement> = {}
-    let remaining = entries.length
-
     for (const [slotId, dataUrl] of entries) {
       const img = new Image()
       img.onload = () => {
         if (cancelled) return
-        loaded[slotId] = img
-        remaining--
-        if (remaining === 0) setLoadedImages({ ...loaded })
-      }
-      img.onerror = () => {
-        if (cancelled) return
-        remaining--
-        if (remaining === 0) setLoadedImages({ ...loaded })
+        setLoadedImages((prev) => ({ ...prev, [slotId]: img }))
       }
       img.src = dataUrl
     }
@@ -61,7 +53,7 @@ export function AssetCanvas() {
     return () => { cancelled = true }
   }, [state.imageOverrides])
 
-  // Render
+  // Render with font loading
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -88,10 +80,24 @@ export function AssetCanvas() {
       return
     }
 
-    renderAsset(ctx, template, state, w, h, {
-      checkerboard: true,
-      images: loadedImages,
+    // Load all fonts used by text blocks before rendering
+    let cancelled = false
+    const fontPromises: Promise<FontFace[]>[] = []
+    for (const block of template.textBlocks) {
+      const family = state.textStyleOverrides?.[block.id]?.fontFamily || 'Inter'
+      const weight = state.textStyleOverrides?.[block.id]?.fontWeight || block.fontWeight
+      fontPromises.push(document.fonts.load(`${weight} 48px "${family}"`))
+    }
+
+    Promise.all(fontPromises).then(() => {
+      if (cancelled) return
+      renderAsset(ctx, template, state, w, h, {
+        checkerboard: true,
+        images: loadedImages,
+      })
     })
+
+    return () => { cancelled = true }
   }, [state, loadedImages])
 
   const spec = STORE_ASSET_SPECS.find((s) => s.id === state.selectedSpecId)
@@ -116,7 +122,7 @@ export function AssetCanvas() {
       </div>
       <span className="shrink-0 text-xs text-muted-foreground">
         {w} x {h}
-        {spec ? ` — ${spec.name}` : ''}
+        {spec ? ` \u2014 ${spec.name}` : ''}
       </span>
     </div>
   )

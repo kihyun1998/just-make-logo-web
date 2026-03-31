@@ -303,13 +303,18 @@
 - [x] Canvas 공통 유틸 추출 (`src/lib/canvas-utils.ts`) + 에셋 렌더링 엔진 (`src/lib/render-asset.ts`)
 - [x] Zustand 스토어 (`src/store/asset-store.ts`) + 에디터 뷰/컴포넌트
 
-### Step 5-2. 에셋 에디터 UI
-- [ ] 에셋 타입 선택 (플랫폼별 카테고리)
-- [ ] 템플릿 선택 UI (미리보기 카드)
-- [ ] 기존 로고 에디터 Canvas 엔진 재사용
-- [ ] 텍스트 영역 편집 (제목, 부제, 설명 등 멀티 텍스트 블록)
-- [ ] 스크린샷/이미지 삽입 슬롯 (업로드 + 배치)
-- [ ] 디바이스 프레임 오버레이 (폰/태블릿 목업)
+### Step 5-2. 에셋 에디터 UI ✅
+- [x] 에셋 타입 선택 (플랫폼별 카테고리) — `spec-selector-panel.tsx`
+- [x] 템플릿 선택 UI (CSS 기반 미리보기 카드 + 텍스트/이미지 위치 표시) — `template-selector-panel.tsx`
+- [x] 기존 로고 에디터 Canvas 엔진 재사용 — `canvas-utils.ts` 공유 + 폰트 로딩 추가
+- [x] 텍스트 영역 편집 (textarea + 블록별 폰트/weight/색상 오버라이드) — `text-blocks-panel.tsx`
+- [x] 스크린샷/이미지 삽입 슬롯 (드래그앤드롭 업로드 + 썸네일 + 제거) — `image-slots-panel.tsx`
+- [x] 배경 컨트롤 (배경색 + 그라디언트 + 프리셋) — `asset-background-panel.tsx`
+- [x] 단일 에셋 내보내기 (PNG/JPG 다운로드 + 클립보드 복사) — `asset-export-panel.tsx`
+- [x] 컨트롤 패널 리팩터 (모놀리식 → 6개 패널 합성 구조) — `asset-control-panel.tsx`
+
+> **Step 5-3으로 연기:**
+> - 디바이스 프레임 오버레이 (폰/태블릿 목업) — SVG 에셋 제작 + 프레임 렌더링 + 색상 커스터마이징은 Step 5-3 스코프
 
 ### Step 5-3. 스크린샷 프레임 + 디바이스 목업
 - [ ] 디바이스 프레임 SVG 에셋 (Pixel, Galaxy, iPhone 등)

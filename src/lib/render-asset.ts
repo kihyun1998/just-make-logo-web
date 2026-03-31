@@ -1,4 +1,4 @@
-import type { AssetTemplate, AssetEditorState, TemplateTextBlock } from '@/types/asset'
+import type { AssetTemplate, AssetEditorState, TemplateTextBlock, TextStyleOverride } from '@/types/asset'
 import {
   drawCheckerboard,
   buildCanvasGradient,
@@ -55,7 +55,8 @@ export function renderAsset(
     const bw = block.width * width
     const bh = block.height * height
 
-    drawTemplateText(ctx, block, text, bx, by, bw, bh)
+    const styleOverride = editorState.textStyleOverrides?.[block.id]
+    drawTemplateText(ctx, block, text, bx, by, bw, bh, styleOverride)
   }
 }
 
@@ -94,19 +95,22 @@ function drawTemplateText(
   y: number,
   w: number,
   h: number,
+  styleOverride?: TextStyleOverride,
 ) {
   if (w <= 0 || h <= 0) return
 
   const lines = splitTextLines(text, block.maxLines)
   if (lines.length === 0) return
 
-  const fontFamily = 'Inter'
+  const fontFamily = styleOverride?.fontFamily || 'Inter'
+  const fontWeight = styleOverride?.fontWeight || block.fontWeight
+  const color = styleOverride?.color || block.color
   const lineHeight = 1.3
-  const fontSize = fitText(ctx, lines, w, h, '', block.fontWeight, fontFamily, 0, lineHeight)
+  const fontSize = fitText(ctx, lines, w, h, '', fontWeight, fontFamily, 0, lineHeight)
   if (fontSize <= 0) return
 
-  ctx.font = `${block.fontWeight} ${fontSize}px "${fontFamily}"`
-  ctx.fillStyle = block.color
+  ctx.font = `${fontWeight} ${fontSize}px "${fontFamily}"`
+  ctx.fillStyle = color
   ctx.textBaseline = 'top'
   ctx.textAlign = block.align
 

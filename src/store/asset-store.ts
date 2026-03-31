@@ -3,13 +3,15 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { temporal } from 'zundo'
-import type { AssetEditorState } from '@/types/asset'
+import type { AssetEditorState, TextStyleOverride } from '@/types/asset'
+import { ASSET_TEMPLATES } from '@/data/asset-templates'
 
 export const DEFAULT_ASSET_STATE: AssetEditorState = {
   selectedSpecId: null,
   selectedTemplateId: null,
 
   textOverrides: {},
+  textStyleOverrides: {},
   imageOverrides: {},
 
   backgroundColor: '#667EEA',
@@ -20,12 +22,16 @@ export const DEFAULT_ASSET_STATE: AssetEditorState = {
     { color: '#667EEA', position: 0 },
     { color: '#764BA2', position: 1 },
   ],
+
+  exportFormat: 'png',
 }
 
 interface AssetActions {
   set: (partial: Partial<AssetEditorState>) => void
   setTextOverride: (blockId: string, value: string) => void
+  setTextStyleOverride: (blockId: string, style: Partial<TextStyleOverride>) => void
   setImageOverride: (slotId: string, dataUrl: string | null) => void
+  applyTemplateDefaults: (templateId: string) => void
   reset: () => void
 }
 
@@ -46,9 +52,32 @@ export const useAssetStore = create<AssetStore>()(
           state.textOverrides[blockId] = value
         }),
 
+      setTextStyleOverride: (blockId, style) =>
+        set((state) => {
+          state.textStyleOverrides[blockId] = {
+            ...state.textStyleOverrides[blockId],
+            ...style,
+          }
+        }),
+
       setImageOverride: (slotId, dataUrl) =>
         set((state) => {
           state.imageOverrides[slotId] = dataUrl
+        }),
+
+      applyTemplateDefaults: (templateId) =>
+        set((state) => {
+          const tmpl = ASSET_TEMPLATES.find((t) => t.id === templateId)
+          if (!tmpl) return
+          state.selectedTemplateId = templateId
+          state.backgroundColor = tmpl.backgroundColor
+          state.useGradient = tmpl.useGradient
+          state.gradientType = tmpl.gradientType
+          state.gradientDirection = tmpl.gradientDirection
+          state.gradientStops = tmpl.gradientStops
+          state.textOverrides = {}
+          state.textStyleOverrides = {}
+          state.imageOverrides = {}
         }),
 
       reset: () =>

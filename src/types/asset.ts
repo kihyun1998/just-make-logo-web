@@ -67,6 +67,18 @@ export interface AssetTemplate {
   imageSlots: TemplateImageSlot[]
 }
 
+// ── Per-block style override ──
+
+export interface TextStyleOverride {
+  fontFamily?: string
+  fontWeight?: FontWeight
+  color?: string
+}
+
+// ── Export format for asset ──
+
+export type AssetExportFormat = 'png' | 'jpg'
+
 // ── Editor Runtime State ──
 
 export interface AssetEditorState {
@@ -75,6 +87,9 @@ export interface AssetEditorState {
 
   // Text overrides keyed by TemplateTextBlock.id
   textOverrides: Record<string, string>
+
+  // Per-block style overrides keyed by TemplateTextBlock.id
+  textStyleOverrides: Record<string, TextStyleOverride>
 
   // Image data URLs keyed by TemplateImageSlot.id
   imageOverrides: Record<string, string | null>
@@ -85,4 +100,7 @@ export interface AssetEditorState {
   gradientType: GradientType
   gradientDirection: GradientDirection
   gradientStops: GradientStop[]
+
+  // Export
+  exportFormat: AssetExportFormat
 }
