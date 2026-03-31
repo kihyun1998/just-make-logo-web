@@ -35,6 +35,8 @@ export function StylePanel() {
           <button
             key={key}
             onClick={() => set({ [key]: !value })}
+            aria-label={label}
+            aria-pressed={value}
             title={label}
             className={`rounded-md p-2 transition-colors ${
               value

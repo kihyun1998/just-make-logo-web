@@ -76,9 +76,10 @@ export function ImagePanel() {
             />
             <button
               onClick={() => set({ imageDataUrl: null })}
-              className="absolute top-1 right-1 rounded-full bg-destructive p-0.5 text-destructive-foreground"
+              aria-label="Remove image"
+              className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-destructive-foreground"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
           <Button

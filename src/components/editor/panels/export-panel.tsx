@@ -211,7 +211,8 @@ function DevicePresets() {
               type="checkbox"
               checked={selected.has(group.platform)}
               onChange={() => togglePlatform(group.platform)}
-              className="h-3.5 w-3.5 rounded border-border accent-primary"
+              aria-label={`Select ${group.platform}`}
+              className="h-4.5 w-4.5 rounded border-border accent-primary cursor-pointer"
             />
             <button
               onClick={() => setOpen(open === group.platform ? null : group.platform)}

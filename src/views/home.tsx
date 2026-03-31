@@ -4,21 +4,30 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
+const fadeUpStyle = (delay: number) => ({
+  animation: `fadeUp 0.5s ease-out ${delay}ms both`,
+});
+
 function FeatureCard({
   icon,
   title,
   description,
+  index,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
+  index: number;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-6">
+    <div
+      className="flex flex-col gap-3 rounded-xl border bg-card p-6 transition-colors hover:border-primary/30"
+      style={fadeUpStyle(index * 100 + 200)}
+    >
       <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary text-lg">
         {icon}
       </div>
-      <h3 className="text-lg font-semibold">{title}</h3>
+      <h3 className="text-base font-semibold tracking-tight">{title}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">
         {description}
       </p>
@@ -45,7 +54,7 @@ function PricingCard({
 }) {
   return (
     <div
-      className={`relative flex flex-col rounded-xl border p-6 ${
+      className={`relative flex flex-col rounded-xl border p-6 transition-shadow hover:shadow-lg ${
         highlighted
           ? "border-primary/50 bg-primary/5 shadow-md"
           : "bg-card"
@@ -142,14 +151,14 @@ export function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center gap-6 px-4 py-24 text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="flex flex-col items-center justify-center gap-5 px-4 py-28 sm:py-32 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" style={fadeUpStyle(0)}>
           {t("home.title")}
         </h1>
-        <p className="max-w-md text-lg text-muted-foreground">
+        <p className="max-w-lg text-base sm:text-lg text-muted-foreground leading-relaxed" style={fadeUpStyle(100)}>
           {t("home.subtitle")}
         </p>
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-4" style={fadeUpStyle(200)}>
           <Button size="lg" asChild>
             <Link href="/editor">{t("home.cta")}</Link>
           </Button>
@@ -160,26 +169,29 @@ export function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="mx-auto w-full max-w-4xl px-4 py-16">
-        <h2 className="mb-10 text-center text-2xl font-bold">
+      <section className="mx-auto w-full max-w-4xl px-4 py-20">
+        <h2 className="mb-3 text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           {t("home.features.title")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {features.map((f) => (
-            <FeatureCard key={f.title} {...f} />
+        <p className="mx-auto mb-12 max-w-md text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          {t("home.subtitle")}
+        </p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          {features.map((f, i) => (
+            <FeatureCard key={f.title} {...f} index={i} />
           ))}
         </div>
       </section>
 
       {/* Pricing */}
-      <section className="mx-auto w-full max-w-2xl px-4 py-16">
-        <h2 className="mb-2 text-center text-2xl font-bold">
+      <section className="mx-auto w-full max-w-2xl px-4 py-20">
+        <h2 className="mb-2 text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           {t("home.pricing.title")}
         </h2>
-        <p className="mb-10 text-center text-muted-foreground">
+        <p className="mb-12 text-center text-2xl font-bold tracking-tight sm:text-3xl">
           {t("home.pricing.subtitle")}
         </p>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <PricingCard
             title={t("home.pricing.free.title")}
             price={t("home.pricing.free.price")}

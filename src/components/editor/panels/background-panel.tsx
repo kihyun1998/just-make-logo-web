@@ -59,7 +59,8 @@ export function BackgroundPanel() {
               <button
                 key={c}
                 onClick={() => set({ backgroundColor: c })}
-                className={`h-7 w-7 rounded-md border-2 transition-transform hover:scale-110 ${
+                aria-label={`Background color: ${c}`}
+                className={`h-9 w-9 rounded-md border-2 transition-transform hover:scale-105 ${
                   backgroundColor.toUpperCase() === c.toUpperCase()
                     ? 'border-primary'
                     : 'border-border'

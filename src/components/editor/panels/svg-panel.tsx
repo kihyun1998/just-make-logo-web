@@ -73,8 +73,8 @@ export function SvgPanel() {
             <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="flex-1 text-xs">
               Change
             </Button>
-            <Button variant="outline" size="sm" onClick={() => set({ svgContent: null })} className="text-xs">
-              <X className="h-3 w-3" />
+            <Button variant="outline" size="sm" onClick={() => set({ svgContent: null })} className="text-xs" aria-label="Remove SVG">
+              <X className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

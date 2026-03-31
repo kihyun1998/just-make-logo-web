@@ -60,7 +60,8 @@ export function GradientPanel() {
                 <button
                   key={d.value}
                   onClick={() => set({ gradientDirection: d.value })}
-                  className={`rounded-md p-1.5 text-sm transition-colors ${
+                  aria-label={`Gradient direction: ${d.value}`}
+                  className={`rounded-md p-2 text-sm transition-colors ${
                     gradientDirection === d.value
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-secondary-foreground hover:bg-accent'
@@ -146,7 +147,8 @@ export function GradientPanel() {
                   key={p.name}
                   title={p.name}
                   onClick={() => set({ gradientStops: p.stops, useGradient: true })}
-                  className="h-7 rounded-md border border-border transition-transform hover:scale-110"
+                  aria-label={`Gradient preset: ${p.name}`}
+                  className="h-8 rounded-md border border-border transition-transform hover:scale-105"
                   style={{
                     background: `linear-gradient(135deg, ${p.stops.map(s => `${s.color} ${s.position * 100}%`).join(', ')})`,
                   }}
