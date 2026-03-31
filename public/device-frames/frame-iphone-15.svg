@@ -1,0 +1,15 @@
+<svg viewBox="0 0 380 780" xmlns="http://www.w3.org/2000/svg">
+  <!-- Screen area (metadata) -->
+  <rect id="screen" x="18" y="18" width="344" height="744" fill="none"/>
+  <!-- Device body -->
+  <rect x="0" y="0" width="380" height="780" rx="52" ry="52" fill="currentColor"/>
+  <!-- Screen cutout -->
+  <rect x="18" y="18" width="344" height="744" rx="40" ry="40" fill="#000"/>
+  <!-- Dynamic Island -->
+  <rect x="148" y="28" width="84" height="28" rx="14" ry="14" fill="#1a1a1a"/>
+  <!-- Side button (right) -->
+  <rect x="378" y="180" width="4" height="80" rx="2" ry="2" fill="currentColor"/>
+  <!-- Volume buttons (left) -->
+  <rect x="-2" y="160" width="4" height="40" rx="2" ry="2" fill="currentColor"/>
+  <rect x="-2" y="220" width="4" height="40" rx="2" ry="2" fill="currentColor"/>
+</svg>

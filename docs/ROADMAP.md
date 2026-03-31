@@ -320,11 +320,14 @@
 - [x] 헤더에 Logo / Asset 에디터 전환 탭 (에디터 라우트에서만 표시, pathname 기반 활성) — `header.tsx`
 - [x] 홈페이지 CTA 분리 ("로고 만들기" / "스토어 에셋 만들기" 2개 버튼) — `home.tsx` + i18n
 
-### Step 5-3. 스크린샷 프레임 + 디바이스 목업
-- [ ] 디바이스 프레임 SVG 에셋 (Pixel, Galaxy, iPhone 등)
-- [ ] 스크린샷 삽입 → 디바이스 프레임 안에 합성
-- [ ] 배경 + 캡션 텍스트 + 디바이스 목업 = 완성 에셋
-- [ ] 프레임 색상/스타일 커스터마이징
+### Step 5-3. 스크린샷 프레임 + 디바이스 목업 ✅
+- [x] 디바이스 프레임 SVG 에셋 5종 (iPhone 15 Pro, iPhone SE, Pixel 8, Galaxy S24, iPad Pro) — `public/device-frames/`
+- [x] 프레임 데이터 정의 (viewBox, 스크린 좌표, 호환 타입) — `src/data/device-frames.ts`
+- [x] 스크린샷 삽입 → 디바이스 프레임 안에 합성 (`drawDeviceMockup` in `render-asset.ts`)
+- [x] 프레임 SVG 로딩 + currentColor 틴팅 훅 — `src/hooks/use-device-frame-images.ts`
+- [x] 프레임 선택 + 색상 커스터마이징 UI — `device-frame-panel.tsx` (5색 프리셋 + 커스텀 피커)
+- [x] 스크린샷 템플릿에 기본 프레임 (`frame-iphone-15`) 설정
+- [x] 내보내기 시 프레임 포함 렌더링
 
 ### Step 5-4. 일괄 에셋 내보내기
 - [ ] 플랫폼별 필수 에셋 체크리스트 UI

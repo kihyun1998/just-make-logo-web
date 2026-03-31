@@ -13,6 +13,7 @@ export const DEFAULT_ASSET_STATE: AssetEditorState = {
   textOverrides: {},
   textStyleOverrides: {},
   imageOverrides: {},
+  deviceFrameOverrides: {},
 
   backgroundColor: '#667EEA',
   useGradient: true,
@@ -31,6 +32,8 @@ interface AssetActions {
   setTextOverride: (blockId: string, value: string) => void
   setTextStyleOverride: (blockId: string, style: Partial<TextStyleOverride>) => void
   setImageOverride: (slotId: string, dataUrl: string | null) => void
+  setDeviceFrame: (slotId: string, frameId: string | null) => void
+  setDeviceFrameColor: (slotId: string, color: string) => void
   applyTemplateDefaults: (templateId: string) => void
   reset: () => void
 }
@@ -65,6 +68,24 @@ export const useAssetStore = create<AssetStore>()(
           state.imageOverrides[slotId] = dataUrl
         }),
 
+      setDeviceFrame: (slotId, frameId) =>
+        set((state) => {
+          const existing = state.deviceFrameOverrides[slotId]
+          state.deviceFrameOverrides[slotId] = {
+            frameId,
+            frameColor: existing?.frameColor || '#1A1A1A',
+          }
+        }),
+
+      setDeviceFrameColor: (slotId, color) =>
+        set((state) => {
+          if (!state.deviceFrameOverrides[slotId]) {
+            state.deviceFrameOverrides[slotId] = { frameId: null, frameColor: color }
+          } else {
+            state.deviceFrameOverrides[slotId].frameColor = color
+          }
+        }),
+
       applyTemplateDefaults: (templateId) =>
         set((state) => {
           const tmpl = ASSET_TEMPLATES.find((t) => t.id === templateId)
@@ -78,6 +99,7 @@ export const useAssetStore = create<AssetStore>()(
           state.textOverrides = {}
           state.textStyleOverrides = {}
           state.imageOverrides = {}
+          state.deviceFrameOverrides = {}
         }),
 
       reset: () =>

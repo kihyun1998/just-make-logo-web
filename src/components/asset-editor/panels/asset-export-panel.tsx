@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useAssetStore } from '@/store/asset-store'
 import { STORE_ASSET_SPECS } from '@/data/asset-specs'
 import { ASSET_TEMPLATES } from '@/data/asset-templates'
+import { DEVICE_FRAMES } from '@/data/device-frames'
 import { renderAsset } from '@/lib/render-asset'
 import { Button } from '@/components/ui/button'
 import {
@@ -93,13 +94,37 @@ async function renderAssetToBlob(
     if (img) images[slot.id] = img
   }
 
+  // Load device frame SVGs
+  const frameSvgs: Record<string, HTMLImageElement> = {}
+  for (const slot of template.imageSlots) {
+    const override = state.deviceFrameOverrides[slot.id]
+    const frameId = override?.frameId ?? slot.deviceFrame ?? null
+    if (!frameId) continue
+    const def = DEVICE_FRAMES.find((f) => f.id === frameId)
+    if (!def) continue
+    try {
+      const resp = await fetch(def.svgPath)
+      let svgText = await resp.text()
+      const color = override?.frameColor || def.defaultColor
+      svgText = svgText.replace(/currentColor/g, color)
+      const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText)
+      const img = await new Promise<HTMLImageElement | null>((resolve) => {
+        const el = new Image()
+        el.onload = () => resolve(el)
+        el.onerror = () => resolve(null)
+        el.src = dataUrl
+      })
+      if (img) frameSvgs[frameId] = img
+    } catch { /* skip frame on error */ }
+  }
+
   const offscreen = document.createElement('canvas')
   offscreen.width = w
   offscreen.height = h
   const ctx = offscreen.getContext('2d')
   if (!ctx) return null
 
-  renderAsset(ctx, template, state, w, h, { checkerboard: false, images })
+  renderAsset(ctx, template, state, w, h, { checkerboard: false, images, frameSvgs })
 
   return new Promise((resolve) => {
     offscreen.toBlob(

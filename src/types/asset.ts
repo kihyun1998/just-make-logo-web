@@ -75,6 +75,13 @@ export interface TextStyleOverride {
   color?: string
 }
 
+// ── Device frame override ──
+
+export interface DeviceFrameOverride {
+  frameId: string | null
+  frameColor: string
+}
+
 // ── Export format for asset ──
 
 export type AssetExportFormat = 'png' | 'jpg'
@@ -100,6 +107,9 @@ export interface AssetEditorState {
   gradientType: GradientType
   gradientDirection: GradientDirection
   gradientStops: GradientStop[]
+
+  // Device frame overrides keyed by TemplateImageSlot.id
+  deviceFrameOverrides: Record<string, DeviceFrameOverride>
 
   // Export
   exportFormat: AssetExportFormat

@@ -6,6 +6,7 @@ import { ASSET_TEMPLATES } from '@/data/asset-templates'
 import { Button } from '@/components/ui/button'
 import { Upload, X, Camera, ImageIcon, Layers } from 'lucide-react'
 import Image from 'next/image'
+import { DeviceFramePanel } from './device-frame-panel'
 
 const ROLE_ICONS: Record<string, typeof Camera> = {
   screenshot: Camera,
@@ -36,14 +37,18 @@ export function ImageSlotsPanel() {
       </h3>
       <div className="flex flex-col gap-2.5">
         {template.imageSlots.map((slot) => (
-          <ImageSlot
-            key={slot.id}
-            slotId={slot.id}
-            role={slot.role}
-            dataUrl={imageOverrides[slot.id] ?? null}
-            onUpload={(url) => setImageOverride(slot.id, url)}
-            onRemove={() => setImageOverride(slot.id, null)}
-          />
+          <div key={slot.id} className="flex flex-col gap-1.5">
+            <ImageSlot
+              slotId={slot.id}
+              role={slot.role}
+              dataUrl={imageOverrides[slot.id] ?? null}
+              onUpload={(url) => setImageOverride(slot.id, url)}
+              onRemove={() => setImageOverride(slot.id, null)}
+            />
+            {slot.role === 'screenshot' && (
+              <DeviceFramePanel slotId={slot.id} defaultFrameId={slot.deviceFrame} />
+            )}
+          </div>
         ))}
       </div>
     </section>

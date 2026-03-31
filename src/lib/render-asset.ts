@@ -1,15 +1,20 @@
 import type { AssetTemplate, AssetEditorState, TemplateTextBlock, TextStyleOverride } from '@/types/asset'
+import type { DeviceFrameDefinition } from '@/data/device-frames'
+import { getDeviceFrame } from '@/data/device-frames'
 import {
   drawCheckerboard,
   buildCanvasGradient,
   fitText,
   drawImageFit,
+  drawRoundedRect,
 } from './canvas-utils'
 
 export interface AssetRenderOptions {
   checkerboard?: boolean
   /** Loaded images keyed by slot id */
   images?: Record<string, HTMLImageElement>
+  /** Pre-loaded device frame images keyed by frame ID */
+  frameSvgs?: Record<string, HTMLImageElement>
 }
 
 /**
@@ -35,14 +40,23 @@ export function renderAsset(
   // Image slots
   for (const slot of template.imageSlots) {
     const img = options.images?.[slot.id]
-    if (!img) continue
 
     const sx = slot.x * width
     const sy = slot.y * height
     const sw = slot.width * width
     const sh = slot.height * height
 
-    drawImageFit(ctx, img, sx, sy, sw, sh, slot.fit)
+    // Resolve device frame
+    const frameOverride = editorState.deviceFrameOverrides?.[slot.id]
+    const frameId = frameOverride?.frameId ?? slot.deviceFrame ?? null
+    const frameDef = frameId ? getDeviceFrame(frameId) : null
+    const frameImg = frameId ? options.frameSvgs?.[frameId] : null
+
+    if (frameDef && frameImg) {
+      drawDeviceMockup(ctx, img ?? null, frameDef, frameImg, sx, sy, sw, sh)
+    } else if (img) {
+      drawImageFit(ctx, img, sx, sy, sw, sh, slot.fit)
+    }
   }
 
   // Text blocks
@@ -83,6 +97,63 @@ function drawAssetBackground(
   }
 
   ctx.fillRect(0, 0, w, h)
+}
+
+// ── Device mockup compositing ──
+
+function drawDeviceMockup(
+  ctx: CanvasRenderingContext2D,
+  screenshotImg: HTMLImageElement | null,
+  frameDef: DeviceFrameDefinition,
+  frameImg: HTMLImageElement,
+  slotX: number,
+  slotY: number,
+  slotW: number,
+  slotH: number,
+) {
+  // Contain-fit the frame within the slot rect
+  const frameAspect = frameDef.viewBoxWidth / frameDef.viewBoxHeight
+  const slotAspect = slotW / slotH
+  let drawW: number, drawH: number
+
+  if (frameAspect > slotAspect) {
+    drawW = slotW
+    drawH = slotW / frameAspect
+  } else {
+    drawH = slotH
+    drawW = slotH * frameAspect
+  }
+  const drawX = slotX + (slotW - drawW) / 2
+  const drawY = slotY + (slotH - drawH) / 2
+
+  // Scale factor from viewBox to drawn size
+  const scaleX = drawW / frameDef.viewBoxWidth
+  const scaleY = drawH / frameDef.viewBoxHeight
+
+  // Screen area in canvas coordinates
+  const screenX = drawX + frameDef.screen.x * scaleX
+  const screenY = drawY + frameDef.screen.y * scaleY
+  const screenW = frameDef.screen.width * scaleX
+  const screenH = frameDef.screen.height * scaleY
+  const screenR = frameDef.screenRadius * Math.min(scaleX, scaleY)
+
+  // 1. Draw screenshot into screen area (clipped with rounded corners)
+  if (screenshotImg) {
+    ctx.save()
+    if (screenR > 0) {
+      drawRoundedRect(ctx, screenX, screenY, screenW, screenH, screenR)
+      ctx.clip()
+    } else {
+      ctx.beginPath()
+      ctx.rect(screenX, screenY, screenW, screenH)
+      ctx.clip()
+    }
+    drawImageFit(ctx, screenshotImg, screenX, screenY, screenW, screenH, 'cover')
+    ctx.restore()
+  }
+
+  // 2. Draw device frame on top
+  ctx.drawImage(frameImg, drawX, drawY, drawW, drawH)
 }
 
 // ── Template text rendering ──
@@ -131,7 +202,6 @@ function drawTemplateText(
 // ── Helpers ──
 
 function getDefaultText(block: TemplateTextBlock): string {
-  // Fallback texts when no i18n is available at render time
   const fallbacks: Record<string, string> = {
     'asset.default.appName': 'App Name',
     'asset.default.tagline': 'Your tagline here',

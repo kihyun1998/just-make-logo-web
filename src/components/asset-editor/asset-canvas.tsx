@@ -1,11 +1,12 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useMemo } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useAssetStore, type AssetStore } from '@/store/asset-store'
 import { STORE_ASSET_SPECS } from '@/data/asset-specs'
 import { ASSET_TEMPLATES } from '@/data/asset-templates'
 import { renderAsset } from '@/lib/render-asset'
+import { useDeviceFrameImages } from '@/hooks/use-device-frame-images'
 import type { AssetEditorState } from '@/types/asset'
 
 function stateSelector(s: AssetStore): AssetEditorState {
@@ -15,6 +16,7 @@ function stateSelector(s: AssetStore): AssetEditorState {
     textOverrides: s.textOverrides,
     textStyleOverrides: s.textStyleOverrides,
     imageOverrides: s.imageOverrides,
+    deviceFrameOverrides: s.deviceFrameOverrides,
     backgroundColor: s.backgroundColor,
     useGradient: s.useGradient,
     gradientType: s.gradientType,
@@ -28,6 +30,25 @@ export function AssetCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const state = useAssetStore(useShallow(stateSelector))
   const [loadedImages, setLoadedImages] = useState<Record<string, HTMLImageElement>>({})
+
+  // Resolve needed frame IDs and color overrides
+  const template = ASSET_TEMPLATES.find((t) => t.id === state.selectedTemplateId)
+  const { neededFrameIds, colorOverrides } = useMemo(() => {
+    if (!template) return { neededFrameIds: [] as string[], colorOverrides: {} as Record<string, string> }
+    const ids: string[] = []
+    const colors: Record<string, string> = {}
+    for (const slot of template.imageSlots) {
+      const override = state.deviceFrameOverrides[slot.id]
+      const frameId = override?.frameId ?? slot.deviceFrame ?? null
+      if (frameId) {
+        ids.push(frameId)
+        if (override?.frameColor) colors[frameId] = override.frameColor
+      }
+    }
+    return { neededFrameIds: [...new Set(ids)], colorOverrides: colors }
+  }, [template, state.deviceFrameOverrides])
+
+  const frameSvgs = useDeviceFrameImages(neededFrameIds, colorOverrides)
 
   // Load images from imageOverrides — incrementally per slot
   useEffect(() => {
@@ -61,7 +82,6 @@ export function AssetCanvas() {
     if (!ctx) return
 
     const spec = STORE_ASSET_SPECS.find((s) => s.id === state.selectedSpecId)
-    const template = ASSET_TEMPLATES.find((t) => t.id === state.selectedTemplateId)
 
     const w = spec?.width ?? 1024
     const h = spec?.height ?? 500
@@ -80,7 +100,6 @@ export function AssetCanvas() {
       return
     }
 
-    // Load all fonts used by text blocks before rendering
     let cancelled = false
     const fontPromises: Promise<FontFace[]>[] = []
     for (const block of template.textBlocks) {
@@ -94,11 +113,12 @@ export function AssetCanvas() {
       renderAsset(ctx, template, state, w, h, {
         checkerboard: true,
         images: loadedImages,
+        frameSvgs,
       })
     })
 
     return () => { cancelled = true }
-  }, [state, loadedImages])
+  }, [state, loadedImages, frameSvgs, template])
 
   const spec = STORE_ASSET_SPECS.find((s) => s.id === state.selectedSpecId)
   const w = spec?.width ?? 1024

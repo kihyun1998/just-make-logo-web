@@ -1,0 +1,14 @@
+<svg viewBox="0 0 380 780" xmlns="http://www.w3.org/2000/svg">
+  <!-- Screen area (metadata) -->
+  <rect id="screen" x="14" y="14" width="352" height="752" fill="none"/>
+  <!-- Device body -->
+  <rect x="0" y="0" width="380" height="780" rx="46" ry="46" fill="currentColor"/>
+  <!-- Screen cutout -->
+  <rect x="14" y="14" width="352" height="752" rx="34" ry="34" fill="#000"/>
+  <!-- Camera punch-hole (center top) -->
+  <circle cx="190" cy="38" r="7" fill="#222"/>
+  <!-- Side button (right) -->
+  <rect x="378" y="190" width="4" height="60" rx="2" ry="2" fill="currentColor"/>
+  <!-- Volume buttons (right, above power) -->
+  <rect x="378" y="130" width="4" height="44" rx="2" ry="2" fill="currentColor"/>
+</svg>
