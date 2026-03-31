@@ -29,7 +29,7 @@ export function DeviceFramePanel({ slotId, defaultFrameId }: DeviceFramePanelPro
   return (
     <div className="flex flex-col gap-2 rounded-md border border-dashed border-border p-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase">Device Frame</span>
+        <span className="text-xs font-medium text-muted-foreground uppercase">Device Frame</span>
         {activeFrameId && (
           <button
             onClick={() => setDeviceFrame(slotId, null)}

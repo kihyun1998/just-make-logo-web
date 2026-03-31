@@ -95,7 +95,7 @@ function ImageSlot({
       <div className="flex items-center gap-1.5">
         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         <label className="text-xs font-medium text-foreground">{label}</label>
-        <span className="text-[10px] text-muted-foreground">({slotId})</span>
+        <span className="text-xs text-muted-foreground">({slotId})</span>
       </div>
 
       {!dataUrl ? (

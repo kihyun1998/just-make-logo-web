@@ -48,6 +48,7 @@ export function SubTextPanel() {
               <button
                 key={pos}
                 onClick={() => update({ position: pos })}
+                aria-pressed={subText.position === pos}
                 className={`flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors ${
                   subText.position === pos
                     ? 'bg-primary text-primary-foreground'

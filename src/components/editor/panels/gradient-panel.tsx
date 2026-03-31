@@ -42,6 +42,7 @@ export function GradientPanel() {
               <button
                 key={t}
                 onClick={() => set({ gradientType: t })}
+                aria-pressed={gradientType === t}
                 className={`flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors ${
                   gradientType === t
                     ? 'bg-primary text-primary-foreground'
@@ -61,6 +62,7 @@ export function GradientPanel() {
                   key={d.value}
                   onClick={() => set({ gradientDirection: d.value })}
                   aria-label={`Gradient direction: ${d.value}`}
+                  aria-pressed={gradientDirection === d.value}
                   className={`rounded-md p-2 text-sm transition-colors ${
                     gradientDirection === d.value
                       ? 'bg-primary text-primary-foreground'

@@ -116,6 +116,7 @@ export function ImagePanel() {
                 <button
                   key={pos}
                   onClick={() => set({ imagePosition: pos })}
+                  aria-pressed={imagePosition === pos}
                   className={`flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors ${
                     imagePosition === pos
                       ? 'bg-primary text-primary-foreground'

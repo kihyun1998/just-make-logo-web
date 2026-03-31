@@ -116,11 +116,11 @@ export function ColorPresetsPanel() {
                       if (e.key === 'Escape') setEditingId(null)
                     }}
                   />
-                  <button onClick={handleConfirmRename} aria-label="Confirm rename">
-                    <Check className="h-3 w-3 text-primary" />
+                  <button onClick={handleConfirmRename} aria-label="Confirm rename" className="rounded p-1.5 hover:bg-muted">
+                    <Check className="h-3.5 w-3.5 text-primary" />
                   </button>
-                  <button onClick={() => setEditingId(null)} aria-label="Cancel rename">
-                    <X className="h-3 w-3 text-muted-foreground" />
+                  <button onClick={() => setEditingId(null)} aria-label="Cancel rename" className="rounded p-1.5 hover:bg-muted">
+                    <X className="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                 </div>
               ) : (
@@ -139,16 +139,16 @@ export function ColorPresetsPanel() {
                   <button
                     onClick={() => handleStartRename(preset.id, preset.name)}
                     aria-label={`Rename ${preset.name}`}
-                    className="rounded p-1 hover:bg-muted"
+                    className="rounded p-1.5 hover:bg-muted"
                   >
-                    <Pencil className="h-3 w-3 text-muted-foreground" />
+                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                   <button
                     onClick={() => handleDelete(preset.id, preset.name)}
                     aria-label={`Delete ${preset.name}`}
-                    className="rounded p-1 hover:bg-destructive/10"
+                    className="rounded p-1.5 hover:bg-destructive/10"
                   >
-                    <Trash2 className="h-3 w-3 text-destructive" />
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </button>
                 </div>
               )}

@@ -19,7 +19,7 @@ export function ToggleSwitch({ checked, onChange, 'aria-label': ariaLabel }: Tog
       }`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+        className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform ${
           checked ? 'translate-x-4' : ''
         }`}
       />

@@ -32,6 +32,7 @@ export function BackgroundPanel() {
             <button
               key={s.value}
               onClick={() => set({ backgroundShape: s.value })}
+              aria-pressed={backgroundShape === s.value}
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                 backgroundShape === s.value
                   ? 'bg-primary text-primary-foreground'

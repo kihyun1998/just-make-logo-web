@@ -51,6 +51,7 @@ export function TextPanel() {
             <button
               key={n}
               onClick={() => set({ textLines: n })}
+              aria-pressed={textLines === n}
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                 textLines === n
                   ? 'bg-primary text-primary-foreground'
