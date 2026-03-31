@@ -16,10 +16,47 @@
     "description": "Create your logo quickly and easily."
   },
   "home": {
-    "title": "Create Your Own Logo",
-    "subtitle": "AI-Powered Logo Generation Service",
+    "title": "Just Make Your Logo",
+    "subtitle": "No complex tools. No AI. Design it yourself and export instantly.",
     "cta": "Start Making Logo",
-    "ctaAsset": "Create Store Assets"
+    "ctaAsset": "Create Store Assets",
+    "features": {
+      "title": "Why Just Make Logo?",
+      "noAi": {
+        "title": "Design It Yourself, No AI",
+        "description": "Skip the generic AI logos. Create something truly yours with full control."
+      },
+      "fast": {
+        "title": "Right in Your Browser",
+        "description": "No installs. Start designing instantly with text, colors, and gradients."
+      },
+      "export": {
+        "title": "Flexible Export",
+        "description": "Download as PNG, ICO, and more. SVG export coming soon."
+      },
+      "asset": {
+        "title": "Store Asset Generator",
+        "description": "Create App Store and Play Store screenshots with device frames."
+      }
+    },
+    "pricing": {
+      "title": "Pricing",
+      "subtitle": "Try everything for free right now",
+      "free": {
+        "title": "Free",
+        "price": "$0",
+        "period": "Free forever",
+        "features": ["Unlimited logo editor", "PNG / ICO export", "Store asset generator", "Color presets"]
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "$2.99",
+        "period": "/mo",
+        "badge": "Coming Soon",
+        "features": ["Everything in Free", "SVG export", "Cloud storage", "Project management"],
+        "currentlyFree": "Currently free to use"
+      }
+    }
   },
   "login": {
     "title": "Login",

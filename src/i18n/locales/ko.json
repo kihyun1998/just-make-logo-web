@@ -16,10 +16,47 @@
     "description": "간단하고 빠르게 로고를 만들어보세요."
   },
   "home": {
-    "title": "나만의 로고를 만들어보세요",
-    "subtitle": "AI 기반 로고 생성 서비스",
+    "title": "로고, 그냥 만들면 됩니다",
+    "subtitle": "복잡한 도구 없이, AI 없이. 직접 만들고 바로 내보내세요.",
     "cta": "로고 만들기",
-    "ctaAsset": "스토어 에셋 만들기"
+    "ctaAsset": "스토어 에셋 만들기",
+    "features": {
+      "title": "왜 Just Make Logo?",
+      "noAi": {
+        "title": "AI 없이 직접 디자인",
+        "description": "AI가 만들어주는 뻔한 로고 말고, 내 손으로 직접 만드는 진짜 로고."
+      },
+      "fast": {
+        "title": "브라우저에서 바로",
+        "description": "설치 없이 브라우저에서 바로 시작. 텍스트, 색상, 그라디언트까지 자유롭게."
+      },
+      "export": {
+        "title": "다양한 내보내기",
+        "description": "PNG, ICO 등 필요한 포맷으로 바로 다운로드. SVG 내보내기도 곧 지원."
+      },
+      "asset": {
+        "title": "스토어 에셋 생성",
+        "description": "앱스토어, 플레이스토어용 스크린샷과 에셋을 디바이스 프레임과 함께 제작."
+      }
+    },
+    "pricing": {
+      "title": "요금제",
+      "subtitle": "지금은 모든 기능을 무료로 체험하세요",
+      "free": {
+        "title": "Free",
+        "price": "$0",
+        "period": "영구 무료",
+        "features": ["로고 에디터 무제한 사용", "PNG / ICO 내보내기", "스토어 에셋 생성", "컬러 프리셋"]
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "$2.99",
+        "period": "/월",
+        "badge": "Coming Soon",
+        "features": ["Free의 모든 기능", "SVG 내보내기", "클라우드 저장", "프로젝트 관리"],
+        "currentlyFree": "현재 무료 이용 가능"
+      }
+    }
   },
   "login": {
     "title": "로그인",
