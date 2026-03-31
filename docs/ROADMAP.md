@@ -338,21 +338,14 @@
 
 ## Phase 6: 후순위 개선
 
-### Step 6-1. URL 공유
-- [ ] 설정을 URL 파라미터로 인코딩 (Base64 압축)
-- [ ] URL에서 설정 복원
-- [ ] 공유 버튼 (링크 복사)
-
-### Step 6-2. 추가 포맷
+### Step 6-1. ICO 내보내기
 - [ ] ICO 내보내기 (Canvas → 16x16/32x32/48x48 멀티사이즈)
-- [ ] WebP 내보내기 (`canvas.toBlob('image/webp')`)
-- [ ] AVIF 내보내기 (브라우저 지원 확인 후 fallback)
 
-### Step 6-3. Radial 그라디언트 고급
+### Step 6-2. Radial 그라디언트 고급
 - [ ] Radial 그라디언트 중심점 X/Y 2D 드래그 UI
 - [ ] 반경/초점 슬라이더
 
-### Step 6-4. 접근성
+### Step 6-3. 접근성
 - [ ] 슬라이더 ARIA (`aria-label`, `aria-valuemin/max/now`)
 - [ ] 키보드 내비게이션 전체 점검
 - [ ] 스크린 리더 `aria-live` 영역
