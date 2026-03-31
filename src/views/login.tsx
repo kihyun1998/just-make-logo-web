@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
 import { GoogleIcon } from '@just-apps/auth'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/stores/useAuth'
 import { i18nToLocale } from '@/lib/locale'
 
 export function LoginPage() {

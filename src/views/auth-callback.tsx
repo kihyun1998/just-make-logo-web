@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { AuthCallbackView } from '@just-apps/auth'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/stores/useAuth'
 
 export function AuthCallbackPage() {
   const router = useRouter()

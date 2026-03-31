@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { MyPageView, Spinner } from '@just-apps/auth'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/stores/useAuth'
 import { Layout } from '@/components/layout/layout'
 import { i18nToLocale } from '@/lib/locale'
 

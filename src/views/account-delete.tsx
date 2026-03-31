@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { AccountDeleteView } from '@just-apps/auth'
-import { useAuth, supabase } from '@/contexts/auth-context'
+import { useAuth, supabase } from '@/stores/useAuth'
 import { Layout } from '@/components/layout/layout'
 import { i18nToLocale } from '@/lib/locale'
 

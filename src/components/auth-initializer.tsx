@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/stores/useAuth'
 
 export function AuthInitializer() {
   const init = useAuth((s) => s.init)

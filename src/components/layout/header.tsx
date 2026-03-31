@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/stores/useAuth";
 import { i18nToLocale } from "@/lib/locale";
 
 export function Header() {
