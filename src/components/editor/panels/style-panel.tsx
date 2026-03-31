@@ -103,6 +103,7 @@ export function StylePanel() {
           <ToggleSwitch
             checked={shadow.enabled}
             onChange={(v) => set({ shadow: { ...shadow, enabled: v } })}
+            aria-label="Toggle shadow"
           />
         </div>
         {shadow.enabled && (
@@ -135,6 +136,7 @@ export function StylePanel() {
           <ToggleSwitch
             checked={stroke.enabled}
             onChange={(v) => set({ stroke: { ...stroke, enabled: v } })}
+            aria-label="Toggle stroke"
           />
         </div>
         {stroke.enabled && (

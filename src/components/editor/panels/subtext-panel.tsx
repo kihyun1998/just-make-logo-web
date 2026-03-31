@@ -30,7 +30,7 @@ export function SubTextPanel() {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Sub Text
         </h3>
-        <ToggleSwitch checked={subText.enabled} onChange={(v) => update({ enabled: v })} />
+        <ToggleSwitch checked={subText.enabled} onChange={(v) => update({ enabled: v })} aria-label="Toggle sub text" />
       </div>
 
       {subText.enabled && (

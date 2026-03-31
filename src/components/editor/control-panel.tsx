@@ -40,10 +40,12 @@ export function ControlPanel() {
       <div className="flex items-start justify-between">
         <div>
           <label className="mb-2 block text-xs font-medium text-muted-foreground">Mode</label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Editor mode">
             {MODES.map((m) => (
               <button
                 key={m.value}
+                role="radio"
+                aria-checked={mode === m.value}
                 onClick={() => set({ mode: m.value })}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   mode === m.value
@@ -56,7 +58,7 @@ export function ControlPanel() {
             ))}
           </div>
         </div>
-        <Button variant="ghost" size="icon-sm" onClick={reset} title="Reset all settings">
+        <Button variant="ghost" size="icon-sm" onClick={reset} aria-label="Reset all settings" title="Reset all settings">
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       </div>

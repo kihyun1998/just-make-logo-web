@@ -31,7 +31,7 @@ export function GradientPanel() {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Gradient
         </h3>
-        <ToggleSwitch checked={useGradient} onChange={(v) => set({ useGradient: v })} />
+        <ToggleSwitch checked={useGradient} onChange={(v) => set({ useGradient: v })} aria-label="Toggle gradient" />
       </div>
 
       {useGradient && (

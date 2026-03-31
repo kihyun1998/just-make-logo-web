@@ -49,16 +49,45 @@ export function ResizableDivider({ direction, onResize, min, max }: ResizableDiv
     dividerRef.current?.releasePointerCapture(e.pointerId)
   }, [])
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const step = 0.02
+    const isVertical = direction === 'vertical'
+    const rect = getContainerRect()
+    if (!rect) return
+
+    const size = isVertical ? rect.height : rect.width
+    const current = isVertical
+      ? (dividerRef.current?.getBoundingClientRect().top ?? 0) - rect.top
+      : (dividerRef.current?.getBoundingClientRect().left ?? 0) - rect.left
+    const fraction = current / size
+
+    let next = fraction
+    if ((isVertical && e.key === 'ArrowUp') || (!isVertical && e.key === 'ArrowLeft')) {
+      next = Math.max(min, fraction - step)
+    } else if ((isVertical && e.key === 'ArrowDown') || (!isVertical && e.key === 'ArrowRight')) {
+      next = Math.min(max, fraction + step)
+    } else {
+      return
+    }
+    e.preventDefault()
+    onResize(next)
+  }, [direction, min, max, onResize, getContainerRect])
+
   const isVertical = direction === 'vertical'
 
   return (
     <div
       ref={dividerRef}
+      role="separator"
+      aria-orientation={isVertical ? 'horizontal' : 'vertical'}
+      aria-label="Resize panel"
+      tabIndex={0}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
+      onKeyDown={handleKeyDown}
       className={`relative z-10 flex shrink-0 items-center justify-center touch-none select-none ${
         isVertical
           ? 'h-3 w-full cursor-row-resize'

@@ -21,10 +21,12 @@ export function ColorPickerField({ label, color, onChange }: ColorPickerFieldPro
           <button
             className="flex items-center gap-2 rounded-md border border-input px-2 py-1"
             type="button"
+            aria-label={`${label}: ${color}`}
           >
             <div
               className="h-5 w-5 rounded-sm border border-border"
               style={{ backgroundColor: color }}
+              aria-hidden="true"
             />
             <span className="text-xs font-mono">{color.toUpperCase()}</span>
           </button>
@@ -37,6 +39,7 @@ export function ColorPickerField({ label, color, onChange }: ColorPickerFieldPro
               <HexColorInput
                 color={color}
                 onChange={onChange}
+                aria-label={`${label} hex value`}
                 className="h-7 w-full rounded-md border border-input bg-transparent px-2 text-xs font-mono"
                 prefixed={false}
               />

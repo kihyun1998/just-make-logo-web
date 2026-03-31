@@ -47,7 +47,7 @@ export function BackgroundPanel() {
       {/* Transparent toggle */}
       <div className="flex items-center justify-between">
         <label className="text-xs text-muted-foreground">Transparent</label>
-        <ToggleSwitch checked={isTransparent} onChange={(v) => set({ isTransparent: v })} />
+        <ToggleSwitch checked={isTransparent} onChange={(v) => set({ isTransparent: v })} aria-label="Toggle transparent background" />
       </div>
 
       {/* Background color (hidden when transparent) */}
