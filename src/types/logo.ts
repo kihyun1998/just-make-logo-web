@@ -30,7 +30,7 @@ export type ImagePosition = 'top' | 'bottom' | 'left' | 'right'
 export type FontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
 
 // Export format
-export type ExportFormat = 'png' | 'jpg' | 'svg'
+export type ExportFormat = 'png' | 'jpg' | 'svg' | 'ico'
 
 // Export scale
 export type ExportScale = 1 | 2 | 3 | 4

@@ -293,7 +293,7 @@ const fontWeights: Record<string, number[]> = {
 | **PNG** | 래스터, 투명 배경 지원 |
 | **JPG** | 래스터, 95% 품질 |
 | **SVG** | 벡터, 무한 확장 |
-| **ICO** | favicon용 아이콘 파일 |
+| **ICO** | favicon/앱 아이콘용, 멀티사이즈 (16/32/48/256px) |
 | **WebP** | 차세대 래스터 포맷 (후순위) |
 | **AVIF** | 차세대 래스터 포맷 (후순위) |
 
@@ -510,7 +510,7 @@ const fontWeights: Record<string, number[]> = {
 - [ ] 텍스트 회전
 - [ ] 글자 스타일 (Italic, Uppercase, Underline)
 - [ ] SVG 내보내기 (직접 SVG DOM 생성, 폰트 임베딩)
-- [ ] ICO 내보내기
+- [x] ICO 내보내기 (멀티사이즈: 16/32/48/256px, 로고+에셋 에디터)
 - [ ] 디바이스별 크기 프리셋 (Android/iOS/Web/macOS/Windows)
 
 ### Phase 3: 프리셋 + 고급 기능

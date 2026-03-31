@@ -4,7 +4,9 @@ import { useCallback, useRef, useState } from 'react'
 import { useLogoStore } from '@/store/logo-store'
 import { renderLogo } from '@/lib/render-logo'
 import { generateSvg } from '@/lib/export-svg'
+import { generateIco } from '@/lib/export-ico'
 import { flattenGroups, batchExport, type BatchProgress } from '@/lib/batch-export'
+import { downloadBlob } from '@/lib/download'
 import { SIZE_PRESETS, DEVICE_GROUPS } from '@/data/presets'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -106,31 +108,36 @@ export function ExportPanel() {
               <SelectItem value="png">PNG</SelectItem>
               <SelectItem value="jpg">JPG</SelectItem>
               <SelectItem value="svg">SVG</SelectItem>
+              <SelectItem value="ico">ICO</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-1 flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Scale</label>
-          <Select
-            value={String(exportScale)}
-            onValueChange={(v) => set({ exportScale: Number(v) as ExportScale })}
-          >
-            <SelectTrigger className="h-8 w-full text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1x</SelectItem>
-              <SelectItem value="2">2x</SelectItem>
-              <SelectItem value="3">3x</SelectItem>
-              <SelectItem value="4">4x</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {exportFormat !== 'ico' && (
+          <div className="flex flex-1 flex-col gap-1">
+            <label className="text-xs text-muted-foreground">Scale</label>
+            <Select
+              value={String(exportScale)}
+              onValueChange={(v) => set({ exportScale: Number(v) as ExportScale })}
+            >
+              <SelectTrigger className="h-8 w-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1x</SelectItem>
+                <SelectItem value="2">2x</SelectItem>
+                <SelectItem value="3">3x</SelectItem>
+                <SelectItem value="4">4x</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* Final size display */}
       <p className="text-xs text-muted-foreground">
-        Output: {canvasWidth * exportScale} x {canvasHeight * exportScale} px
+        {exportFormat === 'ico'
+          ? 'Output: 16x16, 32x32, 48x48, 256x256 (multi-size)'
+          : `Output: ${canvasWidth * exportScale} x ${canvasHeight * exportScale} px`}
       </p>
 
       {/* Export + Copy buttons */}
@@ -176,7 +183,7 @@ function DevicePresets() {
     setBatchState({ status: 'exporting', progress: { current: 0, total: items.length, currentLabel: '' } })
 
     try {
-      const { zip, successCount } = await batchExport(
+      const { zip, successCount, totalCount } = await batchExport(
         state,
         items,
         state.exportFormat,
@@ -191,7 +198,7 @@ function DevicePresets() {
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 3000)
 
-      setBatchState({ status: 'done', successCount, total: items.length })
+      setBatchState({ status: 'done', successCount, total: totalCount })
       setTimeout(() => setBatchState({ status: 'idle' }), 3000)
     } catch {
       setBatchState({ status: 'error' })
@@ -293,33 +300,41 @@ function DevicePresets() {
 }
 
 /**
- * Shared helper: load fonts + image, render to offscreen canvas, return PNG blob.
- * Used by ExportButton, CopyButton (and batch-export has its own version).
+ * Load fonts and image needed for rendering. Shared by renderToBlob and renderToCanvas.
  */
-async function renderToBlob(
+async function prepareRenderResources(
   state: ReturnType<typeof useLogoStore.getState>,
-  options?: { mimeType?: string; quality?: number; jpgBackground?: boolean },
-): Promise<Blob | null> {
+): Promise<HTMLImageElement | null> {
   const fontStyle = state.italic ? 'italic ' : ''
   await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
   if (state.subText.enabled) {
     await document.fonts.load(`${state.subText.fontWeight} 48px "${state.subText.fontFamily}"`)
   }
 
-  let image: HTMLImageElement | null = null
   const imgSrc = state.mode === 'svgOnly' && state.svgContent
     ? URL.createObjectURL(new Blob([state.svgContent], { type: 'image/svg+xml' }))
     : (state.mode === 'imageOnly' || state.mode === 'textImage') ? state.imageDataUrl : null
 
-  if (imgSrc) {
-    image = await new Promise<HTMLImageElement | null>((resolve) => {
-      const img = new Image()
-      img.onload = () => resolve(img)
-      img.onerror = () => resolve(null)
-      img.src = imgSrc
-    })
-    if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
-  }
+  if (!imgSrc) return null
+
+  const image = await new Promise<HTMLImageElement | null>((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = imgSrc
+  })
+  if (state.mode === 'svgOnly') URL.revokeObjectURL(imgSrc)
+  return image
+}
+
+/**
+ * Render logo to offscreen canvas and return as Blob.
+ */
+async function renderToBlob(
+  state: ReturnType<typeof useLogoStore.getState>,
+  options?: { mimeType?: string; quality?: number; jpgBackground?: boolean },
+): Promise<Blob | null> {
+  const image = await prepareRenderResources(state)
 
   const { canvasWidth, canvasHeight, exportScale } = state
   const w = canvasWidth * exportScale
@@ -352,13 +367,28 @@ async function renderToBlob(
   })
 }
 
-function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = fileName
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 3000)
+/**
+ * Render logo to an offscreen canvas at 256x256 (for ICO generation).
+ */
+async function renderToCanvas(
+  state: ReturnType<typeof useLogoStore.getState>,
+): Promise<HTMLCanvasElement | null> {
+  const image = await prepareRenderResources(state)
+
+  const size = 256
+  const offscreen = document.createElement('canvas')
+  offscreen.width = size
+  offscreen.height = size
+  const ctx = offscreen.getContext('2d')
+  if (!ctx) return null
+
+  renderLogo(ctx, state, size, size, {
+    checkerboard: false,
+    jpgBackground: false,
+    image,
+  })
+
+  return offscreen
 }
 
 function ExportButton() {
@@ -377,6 +407,18 @@ function ExportButton() {
         const svgString = generateSvg(state)
         const blob = new Blob([svgString], { type: 'image/svg+xml' })
         downloadBlob(blob, `logo_${state.canvasWidth}x${state.canvasHeight}.svg`)
+        return
+      }
+
+      // ICO export — multi-size icon
+      if (state.exportFormat === 'ico') {
+        const sourceCanvas = await renderToCanvas(state)
+        if (sourceCanvas) {
+          const blob = await generateIco(sourceCanvas)
+          sourceCanvas.width = 0
+          sourceCanvas.height = 0
+          downloadBlob(blob, 'logo.ico')
+        }
         return
       }
 

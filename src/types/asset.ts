@@ -84,7 +84,7 @@ export interface DeviceFrameOverride {
 
 // ── Export format for asset ──
 
-export type AssetExportFormat = 'png' | 'jpg'
+export type AssetExportFormat = 'png' | 'jpg' | 'ico'
 
 // ── Editor Runtime State ──
 

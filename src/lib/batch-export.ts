@@ -2,6 +2,7 @@ import JSZip from 'jszip'
 import type { LogoState, DeviceGroup, ExportFormat } from '@/types/logo'
 import { renderLogo } from './render-logo'
 import { generateSvg } from './export-svg'
+import { generateIco } from './export-ico'
 
 export interface BatchExportItem {
   platform: string
@@ -108,6 +109,33 @@ function renderItemToBlob(
 }
 
 /**
+ * Render a single ICO file (multi-size) for batch export.
+ * Renders at 256x256 and lets generateIco downscale to all sizes.
+ */
+async function renderItemToIco(
+  state: LogoState,
+  image: HTMLImageElement | null,
+): Promise<Blob | null> {
+  const size = 256
+  const offscreen = document.createElement('canvas')
+  offscreen.width = size
+  offscreen.height = size
+  const ctx = offscreen.getContext('2d')
+  if (!ctx) return null
+
+  renderLogo(ctx, state, size, size, {
+    checkerboard: false,
+    jpgBackground: false,
+    image,
+  })
+
+  const blob = await generateIco(offscreen)
+  offscreen.width = 0
+  offscreen.height = 0
+  return blob
+}
+
+/**
  * Batch export selected device groups as a ZIP file.
  * Calls onProgress for each item rendered.
  * Returns the number of successfully exported items.
@@ -117,7 +145,7 @@ export async function batchExport(
   items: BatchExportItem[],
   format: ExportFormat,
   onProgress: (progress: BatchProgress) => void,
-): Promise<{ zip: Blob; successCount: number }> {
+): Promise<{ zip: Blob; successCount: number; totalCount: number }> {
   // Ensure fonts are loaded
   const fontStyle = state.italic ? 'italic ' : ''
   await document.fonts.load(`${fontStyle}${state.fontWeight} 48px "${state.fontFamily}"`)
@@ -129,7 +157,35 @@ export async function batchExport(
 
   const zip = new JSZip()
   let successCount = 0
-  const ext = format === 'jpg' ? 'jpg' : format === 'svg' ? 'svg' : 'png'
+  const ext = format === 'jpg' ? 'jpg' : format === 'svg' ? 'svg' : format === 'ico' ? 'ico' : 'png'
+
+  // ICO: generate one file per platform (all sizes are embedded in the ICO)
+  if (format === 'ico') {
+    const platforms = [...new Set(items.map((i) => i.platform))]
+    for (let i = 0; i < platforms.length; i++) {
+      const platform = platforms[i]
+      onProgress({
+        current: i + 1,
+        total: platforms.length,
+        currentLabel: `${platform}/favicon.ico`,
+      })
+
+      const blob = await renderItemToIco(state, image)
+      if (blob) {
+        zip.file(`${platform}/favicon.ico`, blob)
+        successCount++
+      }
+    }
+
+    onProgress({
+      current: platforms.length,
+      total: platforms.length,
+      currentLabel: 'Compressing ZIP...',
+    })
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' })
+    return { zip: zipBlob, successCount, totalCount: platforms.length }
+  }
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
@@ -155,5 +211,5 @@ export async function batchExport(
   })
 
   const zipBlob = await zip.generateAsync({ type: 'blob' })
-  return { zip: zipBlob, successCount }
+  return { zip: zipBlob, successCount, totalCount: items.length }
 }

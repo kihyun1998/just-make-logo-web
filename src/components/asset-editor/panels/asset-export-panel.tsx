@@ -6,6 +6,8 @@ import { STORE_ASSET_SPECS } from '@/data/asset-specs'
 import { ASSET_TEMPLATES } from '@/data/asset-templates'
 import { DEVICE_FRAMES } from '@/data/device-frames'
 import { renderAsset } from '@/lib/render-asset'
+import { generateIco } from '@/lib/export-ico'
+import { downloadBlob } from '@/lib/download'
 import { Button } from '@/components/ui/button'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -39,6 +41,7 @@ export function AssetExportPanel() {
           <SelectContent>
             <SelectItem value="png">PNG</SelectItem>
             <SelectItem value="jpg">JPG</SelectItem>
+            <SelectItem value="ico">ICO</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -46,7 +49,9 @@ export function AssetExportPanel() {
       {/* Output info */}
       {spec && (
         <p className="text-xs text-muted-foreground">
-          Output: {spec.width} x {spec.height} px
+          {exportFormat === 'ico'
+            ? 'Output: 16x16, 32x32, 48x48, 256x256 (multi-size)'
+            : `Output: ${spec.width} x ${spec.height} px`}
         </p>
       )}
 
@@ -59,10 +64,10 @@ export function AssetExportPanel() {
   )
 }
 
-async function renderAssetToBlob(
-  mimeType: string = 'image/png',
-  quality?: number,
-): Promise<Blob | null> {
+/**
+ * Render asset to an offscreen canvas. Shared by renderAssetToBlob and ICO export.
+ */
+async function renderAssetToCanvas(): Promise<HTMLCanvasElement | null> {
   const state = useAssetStore.getState()
   const spec = STORE_ASSET_SPECS.find((s) => s.id === state.selectedSpecId)
   const template = ASSET_TEMPLATES.find((t) => t.id === state.selectedTemplateId)
@@ -126,14 +131,24 @@ async function renderAssetToBlob(
 
   renderAsset(ctx, template, state, w, h, { checkerboard: false, images, frameSvgs })
 
+  return offscreen
+}
+
+async function renderAssetToBlob(
+  mimeType?: string,
+  quality?: number,
+): Promise<Blob | null> {
+  const canvas = await renderAssetToCanvas()
+  if (!canvas) return null
+
   return new Promise((resolve) => {
-    offscreen.toBlob(
+    canvas.toBlob(
       (blob) => {
-        offscreen.width = 0
-        offscreen.height = 0
+        canvas.width = 0
+        canvas.height = 0
         resolve(blob)
       },
-      mimeType,
+      mimeType ?? 'image/png',
       quality,
     )
   })
@@ -150,6 +165,20 @@ function ExportButton() {
 
     try {
       const spec = STORE_ASSET_SPECS.find((s) => s.id === selectedSpecId)
+      if (!spec) return
+
+      // ICO export
+      if (exportFormat === 'ico') {
+        const canvas = await renderAssetToCanvas()
+        if (canvas) {
+          const blob = await generateIco(canvas)
+          canvas.width = 0
+          canvas.height = 0
+          downloadBlob(blob, `${spec.id}.ico`)
+        }
+        return
+      }
+
       const isJpg = exportFormat === 'jpg'
       const blob = await renderAssetToBlob(
         isJpg ? 'image/jpeg' : 'image/png',
@@ -158,12 +187,7 @@ function ExportButton() {
 
       if (blob && spec) {
         const ext = isJpg ? 'jpg' : 'png'
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${spec.id}_${spec.width}x${spec.height}.${ext}`
-        a.click()
-        setTimeout(() => URL.revokeObjectURL(url), 3000)
+        downloadBlob(blob, `${spec.id}_${spec.width}x${spec.height}.${ext}`)
       }
     } finally {
       exportingRef.current = false
