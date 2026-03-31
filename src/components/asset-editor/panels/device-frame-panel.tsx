@@ -33,10 +33,11 @@ export function DeviceFramePanel({ slotId, defaultFrameId }: DeviceFramePanelPro
         {activeFrameId && (
           <button
             onClick={() => setDeviceFrame(slotId, null)}
-            className="rounded p-0.5 text-muted-foreground hover:bg-muted"
+            aria-label="Remove device frame"
+            className="rounded p-1 text-muted-foreground hover:bg-muted"
             title="Remove frame"
           >
-            <X className="h-3 w-3" />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
@@ -61,8 +62,9 @@ export function DeviceFramePanel({ slotId, defaultFrameId }: DeviceFramePanelPro
               <button
                 key={preset.color}
                 title={preset.name}
+                aria-label={`Frame color: ${preset.name}`}
                 onClick={() => setDeviceFrameColor(slotId, preset.color)}
-                className={`h-5 w-5 rounded-full border-2 transition-transform hover:scale-110 ${
+                className={`h-7 w-7 rounded-full border-2 transition-transform hover:scale-105 ${
                   activeColor.toUpperCase() === preset.color.toUpperCase()
                     ? 'border-primary'
                     : 'border-border'
@@ -93,6 +95,8 @@ function FrameButton({ frame, isSelected, onClick }: {
     <button
       onClick={onClick}
       title={frame.name}
+      aria-label={`Device frame: ${frame.name}`}
+      aria-pressed={isSelected}
       className={`flex flex-col items-center gap-0.5 rounded-md border p-1.5 transition-colors ${
         isSelected
           ? 'border-primary bg-primary/10'

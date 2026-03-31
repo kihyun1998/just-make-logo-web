@@ -31,6 +31,7 @@ export function SpecSelectorPanel() {
                 key={spec.id}
                 onClick={() => selectSpec(spec.id)}
                 title={spec.description}
+                aria-pressed={selectedSpecId === spec.id}
                 className={`rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
                   selectedSpecId === spec.id
                     ? 'border-primary bg-primary/10 text-primary font-medium'

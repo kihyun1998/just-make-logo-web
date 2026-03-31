@@ -18,7 +18,7 @@ export function AssetControlPanel() {
       {/* Header + Reset */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Asset Editor</span>
-        <Button variant="ghost" size="icon-sm" onClick={reset} title="Reset all settings">
+        <Button variant="ghost" size="icon-sm" onClick={reset} aria-label="Reset all settings" title="Reset all settings">
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       </div>

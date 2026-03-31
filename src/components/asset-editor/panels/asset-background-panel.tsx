@@ -38,7 +38,8 @@ export function AssetBackgroundPanel() {
           <button
             key={c}
             onClick={() => set({ backgroundColor: c })}
-            className={`h-7 w-7 rounded-md border-2 transition-transform hover:scale-110 ${
+            aria-label={`Background color: ${c}`}
+            className={`h-9 w-9 rounded-md border-2 transition-transform hover:scale-105 ${
               backgroundColor.toUpperCase() === c.toUpperCase()
                 ? 'border-primary'
                 : 'border-border'
@@ -57,7 +58,7 @@ export function AssetBackgroundPanel() {
       {/* Gradient toggle */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">Gradient</span>
-        <ToggleSwitch checked={useGradient} onChange={(v) => set({ useGradient: v })} />
+        <ToggleSwitch checked={useGradient} onChange={(v) => set({ useGradient: v })} aria-label="Toggle gradient" />
       </div>
 
       {useGradient && (
@@ -86,7 +87,8 @@ export function AssetBackgroundPanel() {
                 <button
                   key={d.value}
                   onClick={() => set({ gradientDirection: d.value })}
-                  className={`rounded-md p-1.5 text-sm transition-colors ${
+                  aria-label={`Gradient direction: ${d.value}`}
+                  className={`rounded-md p-2 text-sm transition-colors ${
                     gradientDirection === d.value
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-secondary-foreground hover:bg-accent'
@@ -161,7 +163,8 @@ export function AssetBackgroundPanel() {
                   key={p.name}
                   title={p.name}
                   onClick={() => set({ gradientStops: p.stops, useGradient: true })}
-                  className="h-7 rounded-md border border-border transition-transform hover:scale-110"
+                  aria-label={`Gradient preset: ${p.name}`}
+                  className="h-8 rounded-md border border-border transition-transform hover:scale-105"
                   style={{
                     background: `linear-gradient(135deg, ${p.stops.map(s => `${s.color} ${s.position * 100}%`).join(', ')})`,
                   }}

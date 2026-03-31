@@ -38,6 +38,8 @@ export function TemplateSelectorPanel() {
             <button
               key={tmpl.id}
               onClick={() => applyTemplateDefaults(tmpl.id)}
+              aria-label={`Template: ${tmpl.name}`}
+              aria-pressed={isSelected}
               className={`group flex flex-col gap-1 rounded-lg border-2 p-1.5 transition-all ${
                 isSelected
                   ? 'border-primary shadow-sm shadow-primary/20'
