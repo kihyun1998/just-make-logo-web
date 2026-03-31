@@ -19,7 +19,7 @@ import { i18nToLocale } from "@/lib/locale";
 
 export function Header() {
   const { t, i18n } = useTranslation();
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
   const { user, role, signOut } = useAuth();
   const router = useRouter();
 
@@ -60,11 +60,8 @@ export function Header() {
 
           {/* Theme Toggle */}
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
+            <Sun className="h-4 w-4 hidden dark:block" />
+            <Moon className="h-4 w-4 block dark:hidden" />
             <span className="sr-only">{t("common.theme")}</span>
           </Button>
 
