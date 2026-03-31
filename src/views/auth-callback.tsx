@@ -6,7 +6,9 @@ import { useAuth } from '@/contexts/auth-context'
 
 export function AuthCallbackPage() {
   const router = useRouter()
-  const { user, isNewUser, loading } = useAuth()
+  const user = useAuth((s) => s.user)
+  const isNewUser = useAuth((s) => s.isNewUser)
+  const loading = useAuth((s) => s.loading)
 
   return (
     <AuthCallbackView

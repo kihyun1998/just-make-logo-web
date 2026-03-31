@@ -3,13 +3,14 @@
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { AccountDeleteView } from '@just-apps/auth'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth, supabase } from '@/contexts/auth-context'
 import { Layout } from '@/components/layout/layout'
-
 import { i18nToLocale } from '@/lib/locale'
 
 export function AccountDeletePage() {
-  const { user, supabase, signInWithGoogle, signOut } = useAuth()
+  const user = useAuth((s) => s.user)
+  const signInWithGoogle = useAuth((s) => s.signInWithGoogle)
+  const signOut = useAuth((s) => s.signOut)
   const { i18n } = useTranslation()
   const router = useRouter()
   const locale = i18nToLocale(i18n.language)

@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { TermsAgreementView } from '@just-apps/auth'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth, supabase } from '@/contexts/auth-context'
 import { useTheme } from '@/components/theme-provider'
 import { getTermsByLocale } from '@/content/terms'
 import { i18nToLocale } from '@/lib/locale'
@@ -12,7 +12,8 @@ import { i18nToLocale } from '@/lib/locale'
 export function TermsAgreementPage() {
   const router = useRouter()
   const { i18n } = useTranslation()
-  const { user, supabase, setIsNewUser } = useAuth()
+  const user = useAuth((s) => s.user)
+  const setIsNewUser = useAuth((s) => s.setIsNewUser)
   const { theme, toggleTheme } = useTheme()
 
   const locale = i18nToLocale(i18n.language)

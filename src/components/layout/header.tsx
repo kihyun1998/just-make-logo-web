@@ -14,13 +14,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/contexts/auth-context";
-
 import { i18nToLocale } from "@/lib/locale";
 
 export function Header() {
   const { t, i18n } = useTranslation();
   const { toggleTheme } = useTheme();
-  const { user, role, signOut } = useAuth();
+  const user = useAuth((s) => s.user);
+  const role = useAuth((s) => s.role);
+  const signOut = useAuth((s) => s.signOut);
   const router = useRouter();
 
   const currentLang = i18n.language.startsWith("ko") ? "ko" : "en";

@@ -6,11 +6,12 @@ import { useTranslation } from 'react-i18next'
 import { MyPageView, Spinner } from '@just-apps/auth'
 import { useAuth } from '@/contexts/auth-context'
 import { Layout } from '@/components/layout/layout'
-
 import { i18nToLocale } from '@/lib/locale'
 
 export function MyPage() {
-  const { user, loading, signOut } = useAuth()
+  const user = useAuth((s) => s.user)
+  const loading = useAuth((s) => s.loading)
+  const signOut = useAuth((s) => s.signOut)
   const { i18n } = useTranslation()
   const router = useRouter()
   const locale = i18nToLocale(i18n.language)
