@@ -1,7 +1,7 @@
 # Just Make Logo - 구현 로드맵
 
 > 기준 문서: `docs/SPEC_TEXT_LOGO.md`
-> 현재 상태: **Phase 4 완료 (저장 보류), Phase 5 진행 예정**
+> 현재 상태: **Phase 1~5 완료, Phase 6 후순위, Phase 7 (결제) 진행 예정**
 
 ---
 
@@ -353,64 +353,230 @@
 
 ---
 
-## Phase 7: Supabase 저장 + 에셋 프로젝트 워크플로우
+## Phase 7: 결제 + 라이선싱
 
-목표: **로고/에셋 설정을 서버에 저장** + 에셋 프로젝트 단위 작업 (공통 설정 공유 + 스크린샷만 교체)
+목표: **Free / Pro 요금제 도입**, 멀티앱 entitlement 시스템, 결제 연동
 
-> DB 사용하는 기능은 모두 이 Phase에서 진행 (보류된 Step 4-3, 4-4 포함)
+> **순서 변경 사유:** 저장/불러오기(이미지 Storage 포함)는 유료 기능으로 제공 예정.
+> 결제 인프라를 먼저 깔아야 저장 기능 구현 시 라이선스 체크를 바로 넣을 수 있음.
 >
-> **에셋 프로젝트 컨셉:** 하나의 앱 출시용 에셋을 "프로젝트"로 관리.
-> 앱 이름, 태그라인, 배경 스타일, 디바이스 프레임 등 공통 설정은 프로젝트 레벨에서 공유하고,
-> 스크린샷 이미지와 장별 캡션만 개별 관리. 1장씩 따로 만드는 게 아니라 하나의 작업 흐름.
+> **아키텍처:** 구독(subscription) + 권한(entitlement) 분리 패턴.
+> Just Apps는 멀티앱 플랫폼이므로 개별 앱 구독 / 번들 구독이 공존.
+> 각 앱은 entitlement만 체크 — 구독 종류(결제/관리자/프로모/체험)를 몰라도 됨.
+>
+> **결제:** Lemon Squeezy (MoR — 사업자등록 불필요)
+>
+> **상품 전략:** 현재 앱이 1개(Just Make Logo)뿐이므로 **최소 구성으로 시작**.
+> - 지금: Product 1개 (Just Make Logo Pro) + Variant 2개 (월간/연간)
+> - 나중에 2번째 앱 출시 시: 해당 앱 Product 추가 + Bundle Product 추가
+> - `PLAN_ENTITLEMENTS` 코드 상수 한 줄 추가로 확장 — DB 스키마 변경 불필요
+> - Bundle을 미리 만들면 구매 가능한 상품은 있는데 쓸 앱이 없는 상황이 되므로 만들지 않음
+>
+> **보안 원칙:**
+> - 구독/권한 테이블은 **서버(service_role)만 쓰기** — 클라이언트는 읽기만 허용
+> - `supabase-admin.ts`에 `import 'server-only'` 필수 — 클라이언트 번들 포함 시 빌드 에러 (사전에 `npm install server-only` 필요)
+> - Webhook은 반드시 **HMAC 서명 검증** 후 처리 (raw body를 `arrayBuffer()`로 읽어야 함 — Next.js App Router body parsing 주의)
+> - **Checkout URL은 서버 사이드 API Route(`/api/checkout`)에서 생성** — `custom_data.user_id`를 서버에서 인증된 세션으로 주입. 클라이언트에서 직접 `custom_data` 설정하면 user_id 위조 가능
+> - `hasAccess(userId, appId)`의 `userId`는 반드시 서버 세션에서 추출 — 외부 입력(query param 등)에서 받으면 IDOR 취약점
+> - `middleware.ts` matcher에 `/api/webhooks` 경로 제외 필수 — Webhook은 Lemon Squeezy 서버에서 쿠키 없이 호출하므로 인증 가드에 걸리면 안 됨
+> - SVG 내보내기는 클라이언트 사이드이므로 완벽한 서버 게이팅 불가 → UX 레벨 게이팅 + 서버 측 저장/다운로드 제한으로 타협
+> - 클라이언트 권한 체크(`useEntitlement`)는 **UX용**, 실제 보안은 서버 측 `hasAccess()`에서 담당
 
-### Step 7-1. 로고 프로젝트 저장/불러오기 (보류된 Step 4-3)
-- [ ] 로고 설정 → Supabase `logo_projects` 저장 (config jsonb)
-- [ ] 프로젝트 목록 UI + 불러오기
-- [ ] 프로젝트 이름 변경 / 삭제
+### Step 7-1. 구독 + 권한 DB 스키마
+- [ ] `just_subscriptions` 테이블:
+  ```
+  id                          uuid PK (gen_random_uuid)
+  user_id                     uuid FK → auth.users
+  plan_id                     text NOT NULL   -- 'logo_pro', 'bundle' 등
+  status                      text NOT NULL   -- CHECK ('active','past_due','canceled','expired','paused','trialing')
+  provider                    text NOT NULL   -- 'lemonsqueezy', 'manual'
+  provider_subscription_id    text            -- Lemon Squeezy subscription ID
+  provider_customer_id        text            -- Lemon Squeezy customer ID (Customer Portal URL 생성에 필요)
+  canceled_at                 timestamptz     -- 취소 시점 (취소했지만 current_period_end까지 유효)
+  trial_ends_at               timestamptz
+  current_period_end          timestamptz
+  created_at                  timestamptz
+  updated_at                  timestamptz (auto-trigger)
 
-### Step 7-2. 컬러 프리셋 서버 마이그레이션 (보류된 Step 4-4)
-- [ ] localStorage → Supabase `logo_color_presets` 마이그레이션
-- [ ] 서버 동기화 (로그인 시 병합)
+  UNIQUE(provider, provider_subscription_id)  -- 중복 삽입 방지
+  INDEX idx_subscriptions_user_id (user_id)   -- 조회 성능
+  INDEX idx_subscriptions_provider_sub (provider_subscription_id)  -- webhook 조회
+  ```
+- [ ] `just_entitlements` 테이블:
+  ```
+  id                uuid PK (gen_random_uuid)
+  user_id           uuid FK → auth.users
+  app_id            text NOT NULL   -- 'logo', 'qr', 'scene' 등
+  source            text NOT NULL   -- CHECK ('subscription', 'admin', 'promo', 'trial')
+  subscription_id   uuid FK → just_subscriptions (nullable — admin/promo는 null)
+  expires_at        timestamptz (nullable — null이면 영구)
+  created_at        timestamptz
 
-### Step 7-3. 에셋 프로젝트 워크플로우
-- [ ] 에셋 프로젝트 데이터 모델 (공통 설정 + 장별 스크린샷/캡션 배열)
-- [ ] 프로젝트 레벨 공통 설정: 앱 이름, 태그라인, 배경, 프레임 스타일 → 전체 장에 적용
-- [ ] 장별 개별 설정: 스크린샷 이미지 + 캡션 텍스트만 다름
-- [ ] 멀티 스크린샷 탭 UI (Screenshot 1, 2, 3... 탭 전환)
-- [ ] Supabase에 프로젝트 저장/불러오기
+  INDEX idx_entitlements_user_app (user_id, app_id)  -- hasAccess() 조회 성능
+  ```
+- [ ] **RLS 정책** (보안 핵심):
+  - `just_subscriptions`: **SELECT만** `auth.uid() = user_id` 허용, INSERT/UPDATE/DELETE는 RLS로 차단 (service_role key로만 조작)
+  - `just_entitlements`: **SELECT만** `auth.uid() = user_id` 허용, INSERT/UPDATE/DELETE는 RLS로 차단
+- [ ] **`supabase-admin.ts`** 생성 — service_role key 사용하는 서버 전용 admin 클라이언트 (webhook/서버 로직에서 RLS 우회하여 구독/권한 테이블 조작)
+- [ ] 활성 entitlement 조회용 뷰 또는 함수:
+  ```sql
+  -- 만료된 entitlement 자동 필터
+  WHERE expires_at IS NULL OR expires_at > now()
+  ```
+- [ ] 플랜 → 앱 매핑은 코드 상수로 관리 (DB 테이블 불필요):
+  ```ts
+  const PLAN_ENTITLEMENTS = {
+    logo_pro: ['logo'],
+    bundle: ['logo', 'qr', 'scene'],
+  }
+  ```
 
-### Step 7-4. 에셋 일괄 내보내기
-- [ ] 프로젝트 내 전체 장 일괄 렌더링 → ZIP 다운로드
-- [ ] 폴더 구조: `android/`, `ios/` 분리
-- [ ] 플랫폼별 필수 에셋 체크리스트 UI
+### Step 7-1.5. Lemon Squeezy 사전 준비 (외부 작업)
+- [ ] **Lemon Squeezy 계정 생성** — [lemonsqueezy.com](https://lemonsqueezy.com) 가입 + 본인 인증
+- [ ] **스토어 생성** — 스토어명: "Just Apps" (또는 원하는 이름), 통화: USD
+- [ ] **상품 생성** — "Just Make Logo Pro"
+  - Variant 1: Monthly ($X.XX/월) — Subscription, 월간 반복 결제
+  - Variant 2: Yearly ($X.XX/년) — Subscription, 연간 반복 결제 (월간 대비 할인)
+  - 가격은 경쟁 서비스 참고하여 결정 (예: 월 $5~10, 연 $50~100)
+- [ ] **API Key 발급** — Settings → API → Create API Key (전체 권한)
+- [ ] **Webhook 설정** — Settings → Webhooks → 엔드포인트 등록:
+  - URL: `https://{도메인}/api/webhooks/lemon-squeezy`
+  - Signing Secret 복사 (HMAC 검증에 사용)
+  - 구독할 이벤트: `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_expired`, `subscription_paused`, `subscription_resumed`, `subscription_payment_failed`, `subscription_payment_recovered`, `order_refunded`
+- [ ] **Store ID 확인** — Settings → General → Store ID
+- [ ] **환경변수 설정** (`.env.local`):
+  ```env
+  # Lemon Squeezy
+  LEMON_SQUEEZY_API_KEY=           # API Key (서버 전용, NEXT_PUBLIC_ 붙이지 않음)
+  LEMON_SQUEEZY_WEBHOOK_SECRET=    # Webhook Signing Secret (서버 전용)
+  LEMON_SQUEEZY_STORE_ID=          # Store ID
+  LEMON_SQUEEZY_VARIANT_MONTHLY=   # Monthly variant ID (Checkout URL 생성에 사용)
+  LEMON_SQUEEZY_VARIANT_YEARLY=    # Yearly variant ID
+  ```
+  > ⚠️ **보안**: `LEMON_SQUEEZY_*` 변수는 절대 `NEXT_PUBLIC_` prefix를 붙이지 않음.
+  > API Key와 Webhook Secret이 클라이언트에 노출되면 결제 시스템 전체가 위험.
+  > Checkout은 Variant ID만 필요하며, 이것도 서버에서 URL을 생성하여 클라이언트에 전달.
+- [ ] **Test Mode 확인** — 개발 중에는 Test Mode로 진행 (대시보드 좌하단 토글)
+  - Test Mode API Key / Webhook Secret / Store ID는 별도 발급됨
+  - 프로덕션 배포 시 Live Mode 키로 교체
 
-**산출물:** Phase 7 완성. 서버 저장 + 에셋 프로젝트 단위 작업 + 일괄 내보내기
+### Step 7-2. Lemon Squeezy 결제 연동
+- [ ] **테스트 모드 환경 분리** — 환경변수 분기 (`LEMON_SQUEEZY_API_KEY`, `LEMON_SQUEEZY_WEBHOOK_SECRET`, `LEMON_SQUEEZY_STORE_ID`를 dev/prod 별도 관리)
+- [ ] **Checkout 서버 사이드 생성** (`/api/checkout` API Route):
+  1. 클라이언트 → 서버 API Route로 플랜 선택 요청
+  2. 서버에서 `supabase.auth.getUser()`로 인증된 `user_id` 확인
+  3. 서버에서 Lemon Squeezy API 호출 → `custom_data.user_id`에 인증된 ID 주입한 Checkout URL 생성
+  4. 생성된 URL을 클라이언트에 반환 → Checkout Overlay로 열기
+  - ⚠️ 클라이언트에서 직접 `custom_data`를 설정하면 user_id 위조 가능 — 반드시 서버에서 생성
+- [ ] 구독 생성 / 취소 / 갱신 / 업그레이드(차액 결제) 플로우
+- [ ] **Webhook 엔드포인트** (`app/api/webhooks/lemon-squeezy/route.ts`):
+  - **HMAC-SHA256 서명 검증** — `X-Signature` 헤더 + raw body로 검증, 실패 시 403 반환
+  - **Idempotency** — `provider_subscription_id` 기준 upsert, `updated_at` 타임스탬프 비교하여 오래된 이벤트 무시
+  - **처리할 이벤트 전체 목록**:
+    | 이벤트 | 처리 |
+    |--------|------|
+    | `subscription_created` | subscription + entitlements 생성 |
+    | `subscription_updated` | period_end 갱신, entitlements expires_at 동기화 |
+    | `subscription_cancelled` | status → 'canceled', canceled_at 기록 (current_period_end까지 유효) |
+    | `subscription_expired` | status → 'expired', entitlements expires_at 즉시 만료 |
+    | `subscription_paused` / `subscription_resumed` | status 업데이트, entitlement 일시정지/복구 |
+    | `subscription_payment_failed` | status → 'past_due', 유저에게 결제 실패 알림 트리거 |
+    | `subscription_payment_recovered` | status → 'active' 복구 |
+    | `order_refunded` | entitlement 회수, subscription status 업데이트 |
+  - **플랜 변경 시 원자적 entitlement 전환** — 트랜잭션으로 기존 entitlement 만료 + 새 entitlement 생성 (일시적 권한 공백 방지)
+  - **에러 로깅/알림** — webhook 처리 실패 시 `just_webhook_logs` 테이블에 기록 + Slack/Discord 알림 (결제 webhook 실패는 매출 직결)
+- [ ] **Checkout 완료 후 webhook 지연 대응**:
+  - Checkout Overlay 완료 콜백에서 polling (3초 간격, 최대 30초)
+  - polling 실패 시 Lemon Squeezy API 직접 조회 fallback
+  - Optimistic UI — "결제 처리 중..." 표시 후 entitlement 확인되면 Pro 활성화
+- [ ] Lemon Squeezy Customer Portal 링크 연동 — `provider_customer_id`로 동적 URL 생성
+
+### Step 7-3. 권한 체크 + 기능 게이팅
+- [ ] `hasAccess(userId, appId)` 서버 유틸 — entitlements 테이블 조회 (`supabase-admin.ts` 사용)
+- [ ] `useEntitlement(appId)` 클라이언트 훅 — `useAuth`와 분리된 별도 훅 (관심사 분리: 인증은 `useAuth`, 권한은 `useEntitlement`)
+- [ ] **Entitlement 캐싱** — 로그인 시 entitlement 정보를 한 번 가져와 클라이언트 스토어에 캐시, webhook으로 상태 변경 시 Supabase Realtime으로 실시간 갱신 (매 요청마다 DB 조회 방지)
+- [ ] Pro 기능 게이트:
+  - SVG 내보내기 — `ExportPanel`에서 SVG 포맷 선택 시 entitlement 체크, 미보유 시 업그레이드 모달 (클라이언트 레벨 게이팅)
+  - 클라우드 저장 / 설정 저장·불러오기 — 서버 측 `hasAccess()` 검증 (Phase 8 연동)
+- [ ] **업그레이드 유도 UI** — Pro 기능 접근 시 Pricing 모달 또는 페이지로 유도
+- [ ] **무료체험(trial)**:
+  - 시작 조건: 명시적 "무료 체험 시작" 버튼 클릭 (가입 즉시 자동 부여 아님)
+  - 기간: 7일 entitlement 자동 부여 (source: 'trial')
+  - **중복 방지**: `just_trial_history` 테이블 (user_id + email 기반) — 계정 삭제 후 재가입해도 trial 재사용 불가
+  - **만료 알림**: trial 만료 2일 전 / 만료 시 이메일 알림 (Lemon Squeezy 빌트인 이메일 또는 별도 서비스)
+- [ ] **결제 실패(past_due) 대응 UI**:
+  - Grace period (3일) 동안 Pro 기능 유지 + 배너로 결제 수단 업데이트 유도
+  - Grace period 만료 후 Free로 다운그레이드 + Customer Portal 링크 제공
+
+### Step 7-4. 관리자 + 프로모션
+- [ ] 관리자 판별: 기존 `user_agreements.role = 'admin'` 활용 — **반드시 서버 사이드에서 role 검증 후 수행** (클라이언트에서 role만 보고 관리자 API 호출 불가)
+- [ ] 관리자 entitlement 수동 부여 (source: 'admin', expires_at: null — 영구)
+- [ ] 프로모션 entitlement 부여 (source: 'promo', expires_at: 기간 지정)
+- [ ] 초기에는 Supabase Dashboard에서 직접 관리, 추후 관리자 UI 구현
+
+### Step 7-5. 구독 관리 UI
+- [ ] 마이페이지(`MyPageView`)에 구독 현황 표시 (플랜, 다음 결제일, 상태, 취소 예정일)
+  - 초기에는 앱 로컬 구현, 안정화 후 `@just-apps/auth` 패키지에 `SubscriptionView`로 추출
+- [ ] 플랜 변경 (개별 → 번들 업그레이드, 차액 결제)
+- [ ] 구독 취소 플로우 (취소 사유 수집 + 확인 모달 + canceled_at 기록)
+- [ ] Lemon Squeezy Customer Portal 연동 (결제 수단 변경, 영수증 조회)
+- [ ] 결제 실패 시 재결제 유도 배너 / 결제 수단 업데이트 안내
+
+### Step 7-6. 기존 유저 마이그레이션 + 테스트
+- [ ] **기존 유저 정책**: 기존 가입자(`user_agreements` 기존 rows)에게 trial 자동 부여 (신규 유저와 동일하게 "무료 체험 시작" 버튼 제공)
+- [ ] **`logo_projects` / `logo_color_presets` RLS 확장**: Phase 8에서 저장 기능 구현 시 entitlement 체크를 RLS에 추가할지, 앱 레벨에서만 할지 결정 → 이 시점에 함께 설계
+- [ ] **Webhook 로컬 테스트 환경**: ngrok 또는 Lemon Squeezy webhook 테스트 도구로 로컬에서 webhook 수신 테스트
+- [ ] **단위 테스트**: `hasAccess()`, entitlement 만료 로직, webhook 이벤트 핸들러별 테스트
+- [ ] **E2E 테스트**: Lemon Squeezy Test Mode로 결제 플로우 전체 검증
+- [ ] **`just_webhook_logs` 테이블**: webhook 수신/처리 이력 기록 (디버깅 + 모니터링)
+  ```
+  id            uuid PK
+  event_name    text
+  payload       jsonb
+  status        text      -- 'processed', 'failed', 'skipped'
+  error_message text
+  created_at    timestamptz
+  ```
+
+**산출물:** Phase 7 완성. Lemon Squeezy 결제, 멀티앱 entitlement 시스템, HMAC 서명 검증, idempotent webhook 처리, 관리자/프로모/체험 지원, 결제 실패 대응, 구독 관리 UI, webhook 로깅/모니터링
 
 ---
 
-## Phase 8: 결제 + 라이선싱
+## Phase 8: Supabase 저장/불러오기
 
-목표: **Free / Pro 요금제 도입**, Pro 전용 기능 게이팅, 결제 연동
+목표: **로고/에셋 설정값을 서버에 저장/불러오기** (유료 사용자 전용)
 
-### Step 8-1. Lemon Squeezy 결제 연동
-- [ ] Lemon Squeezy 스토어 / 상품 / $2.99 월구독 플랜 생성
-- [ ] Checkout Overlay (JS 위젯) 연동 → Pricing 페이지에서 결제
-- [ ] 구독 생성 / 취소 / 갱신 플로우
-- [ ] Webhook → Supabase 구독 상태 동기화 (subscription_created, updated, expired 등)
-- [ ] Lemon Squeezy Customer Portal 링크 연동 (셀프 서비스)
+> **설계 방침:**
+> - 로고/에셋 모두 "설정값 스냅샷 저장/불러오기" 패턴 (프로젝트 개념 아님)
+> - 이미지(업로드 이미지, SVG, 스크린샷)는 **Supabase Storage**에 업로드 → URL 참조
+> - DB에는 설정값(config jsonb)만 저장 — 이미지 data URL 대신 Storage URL로 교체
+> - 에셋은 나중에 스크린샷만 교체해서 다시 뽑는 용도로 재사용
+> - 비로그인 사용자는 기존처럼 에디터만 사용 (저장 불가)
 
-### Step 8-2. 라이선싱 & 기능 게이팅
-- [ ] 유저별 구독 상태 (free / pro) DB 스키마
-- [ ] Pro 전용 기능 게이트 미들웨어 / 훅 (`useProFeature`)
-- [ ] Pro 기능: SVG 내보내기, 클라우드 저장, 프로젝트 관리
-- [ ] Free 유저 Pro 기능 접근 시 업그레이드 유도 UI
+### Step 8-1. Supabase Storage 설정
+- [ ] Storage 버킷 생성 (`logo-images`, `asset-images`)
+- [ ] RLS 정책 (본인 폴더만 CRUD: `user_id/` prefix)
+- [ ] 이미지 업로드 유틸 (data URL → Storage 업로드 → public URL 반환)
+- [ ] 업로드 용량 제한 / 파일 타입 검증
 
-### Step 8-3. 구독 관리 UI
-- [ ] 마이페이지에 구독 현황 표시 (플랜, 다음 결제일, 취소)
-- [ ] 결제 내역 조회
-- [ ] 플랜 변경 / 취소 플로우
+### Step 8-2. 로고 설정 저장/불러오기 (보류된 Step 4-3)
+- [ ] 저장: 현재 `LogoState` 스냅샷 → 이미지는 Storage 업로드 → config jsonb에 URL 참조로 저장
+- [ ] 에디터 내 저장/불러오기 UI (저장 목록 + 이름 지정 + 불러오기 + 삭제)
+- [ ] 불러오기: config 복원 → Storage URL에서 이미지 로드 → store에 반영
+- [ ] 라이선스 체크 (`useProFeature`) 연동
 
-**산출물:** Phase 8 완성. Pro $2.99/월 구독 결제, 기능별 라이선스 게이팅, 구독 관리
+### Step 8-3. 에셋 설정 저장/불러오기
+- [ ] `asset_configs` 테이블 (id, user_id, name, config jsonb, created_at, updated_at)
+- [ ] 저장: `AssetEditorState` 스냅샷 → 스크린샷/이미지는 Storage → config에 URL 참조
+- [ ] 에셋 에디터 내 저장/불러오기 UI (로고와 동일 패턴)
+- [ ] 불러오기 후 스크린샷만 교체 → 재내보내기 워크플로우
+- [ ] 라이선스 체크 연동
+
+### Step 8-4. 컬러 프리셋 서버 마이그레이션 (보류된 Step 4-4)
+- [ ] localStorage → Supabase `logo_color_presets` 마이그레이션
+- [ ] 서버 동기화 (로그인 시 병합)
+
+**산출물:** Phase 8 완성. 유료 사용자 로고/에셋 설정 저장/불러오기 + 이미지 Storage + 컬러 프리셋 동기화
 
 ---
 
@@ -424,8 +590,8 @@
 | **Phase 4** (Supabase) ✅ | 2 스텝 완료, 2 보류 | DB 스키마, RLS, 인증 (저장 기능 보류) |
 | **Phase 5** (스토어 에셋) ✅ | 4 스텝 | 템플릿 시스템, 디바이스 목업, 멀티 텍스트 블록 |
 | **Phase 6** (후순위) | 4+ 스텝 | URL 인코딩, ICO 생성, 접근성 |
-| **Phase 7** (DB 저장) | 4 스텝 | Supabase 저장/불러오기, 멀티 슬롯, 일괄 내보내기 |
-| **Phase 8** (결제/라이선싱) | 3 스텝 | 결제 연동, Pro 기능 게이팅, 구독 관리 |
+| **Phase 7** (결제/라이선싱) | 6 스텝 | 구독+entitlement 스키마, Lemon Squeezy, HMAC webhook, 권한 게이팅, trial 중복 방지, 마이그레이션/테스트 |
+| **Phase 8** (저장/불러오기) | 4 스텝 | Storage 이미지 업로드, 설정값 저장/불러오기, 프리셋 동기화 |
 
 ### 의존성 그래프
 
@@ -436,8 +602,8 @@ Phase 1 ✅
             └→ Phase 4 (Supabase 연동) ✅ Step 4-1, 4-2 완료
                  ├→ Phase 5 (스토어 에셋) ✅ Step 5-1 ~ 5-3 + 5-2.5 완료
                  ├→ Phase 6 (후순위) — 독립적, 언제든 가능
-                 └→ Phase 7 (DB 저장) — Phase 4 + 5 기반, 보류된 4-3/4-4 + 일괄 내보내기
-                      └→ Phase 8 (결제/라이선싱) — Phase 7 기반, Pro 기능 게이팅
+                 └→ Phase 7 (결제/라이선싱) — Phase 4 기반, 구독 상태 DB 관리
+                      └→ Phase 8 (저장/불러오기) — Phase 7 기반, 유료 기능으로 게이팅 + Storage 이미지
 ```
 
 ### 핵심 리스크
@@ -448,8 +614,13 @@ Phase 1 ✅
 | FittedBox 텍스트 크기 계산 정확도 | Step 1-2 | `measureText()` + 이진 탐색 ✅ 구현됨, uppercase 반영 완료 |
 | Google Fonts 39종 초기 로딩 시간 | Step 1-3 | 전체 한 번에 로드 방식 사용 중, lazy load 개선 가능 |
 | SVG 내보내기 폰트 임베딩 | Step 2-6 | `@import` URL 방식 우선, Base64 임베딩은 후순위 |
-| Supabase 무료 티어 용량 (멀티앱 공유 DB) | Step 4-3/4-4 | 저장 기능 보류, 필요 시 localStorage 우선 |
+| Supabase Storage 용량/비용 (멀티앱 공유) | Step 8-1 | 이미지는 Storage, DB에는 config만 — DB 부담 최소화. Storage 용량 모니터링 필요 |
 | 디바이스 목업 SVG 라이선스 | Step 5-3 | 자체 제작 또는 MIT 라이선스 에셋 사용 |
 | 스토어 에셋 규격 변경 | Step 5-1 | Google/Apple 공식 문서 기준, 업데이트 대응 필요 |
 | ICO 멀티사이즈 생성 | Step 6-2 | ico-canvas 같은 경량 라이브러리 또는 직접 바이너리 생성 |
 | Canvas 큰 배율(4x) 메모리 | Step 1-6 | 4096x4096 이상 시 경고 필요 (미구현) |
+| Webhook 순서/중복 처리 | Step 7-2 | idempotent upsert + updated_at 비교로 오래된 이벤트 무시 |
+| Checkout 후 webhook 지연 | Step 7-2 | polling + Lemon Squeezy API 직접 조회 fallback |
+| Trial 재사용 악용 (삭제→재가입) | Step 7-3 | just_trial_history 테이블로 email 기반 중복 방지 |
+| 결제 실패 시 서비스 중단 | Step 7-3 | 3일 grace period + 재결제 유도 배너 |
+| SVG 내보내기 서버 게이팅 불가 | Step 7-3 | 클라이언트 사이드이므로 UX 레벨 게이팅으로 타협, 서버 측 저장/다운로드만 실제 차단 |
