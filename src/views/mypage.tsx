@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslation } from 'react-i18next'
-import { MyPageView, Spinner, MarbleAvatar } from '@just-apps/auth'
-import { useAuth } from '@/stores/useAuth'
-import { Layout } from '@/components/layout/layout'
-import { i18nToLocale } from '@/lib/locale'
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
+import { MyPageView, Spinner, MarbleAvatar } from "@just-apps/auth";
+import { useAuth } from "@/stores/useAuth";
+import { Layout } from "@/components/layout/layout";
+import { i18nToLocale } from "@/lib/locale";
 
 export function MyPage() {
-  const user = useAuth((s) => s.user)
-  const loading = useAuth((s) => s.loading)
-  const signOut = useAuth((s) => s.signOut)
-  const { i18n } = useTranslation()
-  const router = useRouter()
-  const locale = i18nToLocale(i18n.language)
+  const user = useAuth((s) => s.user);
+  const loading = useAuth((s) => s.loading);
+  const signOut = useAuth((s) => s.signOut);
+  const { i18n } = useTranslation();
+  const router = useRouter();
+  const locale = i18nToLocale(i18n.language);
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace('/login')
+      router.replace("/login");
     }
-  }, [loading, user, router])
+  }, [loading, user, router]);
 
   return (
     <Layout>
@@ -37,14 +37,14 @@ export function MyPage() {
               locale={locale}
               user={user}
               onSignOut={async () => {
-                await signOut()
-                router.push('/')
+                await signOut();
+                router.push("/");
               }}
-              onDeleteAccount={() => router.push('/account/delete')}
+              onDeleteAccount={() => router.push("/account/delete")}
             />
           </div>
         ) : null}
       </main>
     </Layout>
-  )
+  );
 }
