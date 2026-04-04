@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { MyPageView, Spinner, BoringAvatar } from '@just-apps/auth'
+import { MyPageView, Spinner, MarbleAvatar } from '@just-apps/auth'
 import { useAuth } from '@/stores/useAuth'
 import { Layout } from '@/components/layout/layout'
 import { i18nToLocale } from '@/lib/locale'
@@ -29,7 +29,7 @@ export function MyPage() {
           <Spinner size="lg" />
         ) : user ? (
           <div className="flex w-full max-w-md flex-col items-center gap-6">
-            <BoringAvatar
+            <MarbleAvatar
               name={`justapps:${user.email ?? user.id}`}
               size={80}
             />
