@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { MyPageView, Spinner } from '@just-apps/auth'
+import { MyPageView, Spinner, BoringAvatar } from '@just-apps/auth'
 import { useAuth } from '@/stores/useAuth'
 import { Layout } from '@/components/layout/layout'
 import { i18nToLocale } from '@/lib/locale'
@@ -28,15 +28,21 @@ export function MyPage() {
         {loading ? (
           <Spinner size="lg" />
         ) : user ? (
-          <MyPageView
-            locale={locale}
-            user={user}
-            onSignOut={async () => {
-              await signOut()
-              router.push('/')
-            }}
-            onDeleteAccount={() => router.push('/account/delete')}
-          />
+          <div className="flex w-full max-w-md flex-col items-center gap-6">
+            <BoringAvatar
+              name={`justapps:${user.email ?? user.id}`}
+              size={80}
+            />
+            <MyPageView
+              locale={locale}
+              user={user}
+              onSignOut={async () => {
+                await signOut()
+                router.push('/')
+              }}
+              onDeleteAccount={() => router.push('/account/delete')}
+            />
+          </div>
         ) : null}
       </main>
     </Layout>

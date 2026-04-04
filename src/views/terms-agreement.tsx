@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { TermsAgreementView } from '@just-apps/auth'
+import type { TermItem } from '@just-apps/auth'
 import { useAuth, supabase } from '@/stores/useAuth'
 import { useTheme } from '@/components/theme-provider'
 import { getTermsByLocale } from '@/content/terms'
@@ -18,7 +19,7 @@ export function TermsAgreementPage() {
 
   const locale = i18nToLocale(i18n.language)
 
-  const terms = useMemo(
+  const terms: TermItem[] = useMemo(
     () =>
       getTermsByLocale(locale).map((d) => ({
         id: d.id,
