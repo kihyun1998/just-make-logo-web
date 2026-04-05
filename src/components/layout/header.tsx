@@ -19,6 +19,7 @@ import { i18nToLocale } from "@/lib/locale";
 export function Header() {
   const { t, i18n } = useTranslation();
   const { toggleTheme } = useTheme();
+  const loading = useAuth((s) => s.loading);
   const user = useAuth((s) => s.user);
   const role = useAuth((s) => s.role);
   const signOut = useAuth((s) => s.signOut);
@@ -98,7 +99,7 @@ export function Header() {
           </Button>
 
           {/* Auth */}
-          {user ? (
+          {loading ? null : user ? (
             <UserMenu
               locale={locale}
               user={user}
