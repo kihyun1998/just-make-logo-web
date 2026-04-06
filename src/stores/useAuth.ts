@@ -33,18 +33,22 @@ export const useAuth = create<AuthStore>((set, get) => ({
     set({ initialized: true })
 
     ;(async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (session?.user) {
-        const { agreed, role } = await get().checkAgreement(session.user.id)
-        set({
-          user: session.user,
-          role,
-          isNewUser: !agreed,
-          loading: false,
-        })
-      } else {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (session?.user) {
+          const { agreed, role } = await get().checkAgreement(session.user.id)
+          set({
+            user: session.user,
+            role,
+            isNewUser: !agreed,
+            loading: false,
+          })
+        } else {
+          set({ loading: false })
+        }
+      } catch {
         set({ loading: false })
       }
     })()
