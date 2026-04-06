@@ -62,11 +62,17 @@ export const useAuth = create<AuthStore>((set, get) => ({
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('[auth] onAuthStateChange:', _event, { user: !!session?.user })
-      if (session?.user) {
-        const { agreed, role } = await get().checkAgreement(session.user.id)
-        set({ user: session.user, role, isNewUser: !agreed, loading: false })
-      } else {
-        set({ user: null, role: null, isNewUser: false, loading: false })
+      try {
+        if (session?.user) {
+          const { agreed, role } = await get().checkAgreement(session.user.id)
+          console.log('[auth] onAuthStateChange: checkAgreement done', { agreed, role })
+          set({ user: session.user, role, isNewUser: !agreed, loading: false })
+        } else {
+          set({ user: null, role: null, isNewUser: false, loading: false })
+        }
+      } catch (err) {
+        console.error('[auth] onAuthStateChange: error', err)
+        set({ user: session?.user ?? null, role: null, isNewUser: false, loading: false })
       }
     })
 
