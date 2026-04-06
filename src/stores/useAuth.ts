@@ -35,6 +35,11 @@ export const useAuth = create<AuthStore>((set, get) => ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'TOKEN_REFRESHED' && !session) {
+        supabase.auth.signOut().catch(() => {})
+        set({ user: null, role: null, isNewUser: false, loading: false })
+        return
+      }
       if (session?.user) {
         // DB 쿼리를 콜백 밖에서 실행 (콜백 안에서 하면 세션 처리 중 deadlock)
         setTimeout(async () => {

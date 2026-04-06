@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Moon, Sun, Globe } from "lucide-react";
-import { UserMenu } from "@just-apps/auth";
+import { UserMenu, LoginButton } from "@just-apps/auth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -109,9 +109,10 @@ export function Header() {
               onSignOut={() => signOut()}
             />
           ) : (
-            <Button variant="default" size="sm" asChild>
-              <Link href="/login">{t("common.login")}</Link>
-            </Button>
+            <LoginButton
+              locale={locale}
+              onClick={() => router.push("/login")}
+            />
           )}
         </div>
       </div>
