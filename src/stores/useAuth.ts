@@ -32,25 +32,21 @@ export const useAuth = create<AuthStore>((set, get) => ({
     if (get().initialized) return
     set({ initialized: true })
 
-    console.log('[auth] init: subscribing onAuthStateChange')
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('[auth] event:', _event, 'user:', !!session?.user)
-      try {
-        if (session?.user) {
-          console.log('[auth] calling checkAgreement...')
-          const { agreed, role } = await get().checkAgreement(session.user.id)
-          console.log('[auth] checkAgreement done:', { agreed, role })
-          set({ user: session.user, role, isNewUser: !agreed, loading: false })
-          console.log('[auth] state set, loading: false')
-        } else {
-          set({ user: null, role: null, isNewUser: false, loading: false })
-          console.log('[auth] no user, loading: false')
-        }
-      } catch (err) {
-        console.error('[auth] error:', err)
-        set({ user: session?.user ?? null, role: null, isNewUser: false, loading: false })
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        // DB 쿼리를 콜백 밖에서 실행 (콜백 안에서 하면 세션 처리 중 deadlock)
+        setTimeout(async () => {
+          try {
+            const { agreed, role } = await get().checkAgreement(session.user.id)
+            set({ user: session.user, role, isNewUser: !agreed, loading: false })
+          } catch {
+            set({ user: session.user, role: null, isNewUser: false, loading: false })
+          }
+        }, 0)
+      } else {
+        set({ user: null, role: null, isNewUser: false, loading: false })
       }
     })
 
