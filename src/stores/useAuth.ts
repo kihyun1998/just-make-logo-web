@@ -32,46 +32,17 @@ export const useAuth = create<AuthStore>((set, get) => ({
     if (get().initialized) return
     set({ initialized: true })
 
-    ;(async () => {
-      try {
-        console.log('[auth] init: calling getUser...')
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser()
-        console.log('[auth] init: getUser result', { user: !!user, error })
-        if (user) {
-          const { agreed, role } = await get().checkAgreement(user.id)
-          console.log('[auth] init: checkAgreement done', { agreed, role })
-          set({
-            user,
-            role,
-            isNewUser: !agreed,
-            loading: false,
-          })
-        } else {
-          set({ loading: false })
-        }
-      } catch (err) {
-        console.error('[auth] init: caught error', err)
-        set({ loading: false })
-      }
-    })()
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('[auth] onAuthStateChange:', _event, { user: !!session?.user })
       try {
         if (session?.user) {
           const { agreed, role } = await get().checkAgreement(session.user.id)
-          console.log('[auth] onAuthStateChange: checkAgreement done', { agreed, role })
           set({ user: session.user, role, isNewUser: !agreed, loading: false })
         } else {
           set({ user: null, role: null, isNewUser: false, loading: false })
         }
-      } catch (err) {
-        console.error('[auth] onAuthStateChange: error', err)
+      } catch {
         set({ user: session?.user ?? null, role: null, isNewUser: false, loading: false })
       }
     })
