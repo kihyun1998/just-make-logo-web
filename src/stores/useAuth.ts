@@ -34,11 +34,15 @@ export const useAuth = create<AuthStore>((set, get) => ({
 
     ;(async () => {
       try {
+        console.log('[auth] init: calling getUser...')
         const {
           data: { user },
+          error,
         } = await supabase.auth.getUser()
+        console.log('[auth] init: getUser result', { user: !!user, error })
         if (user) {
           const { agreed, role } = await get().checkAgreement(user.id)
+          console.log('[auth] init: checkAgreement done', { agreed, role })
           set({
             user,
             role,
@@ -48,7 +52,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
         } else {
           set({ loading: false })
         }
-      } catch {
+      } catch (err) {
+        console.error('[auth] init: caught error', err)
         set({ loading: false })
       }
     })()
@@ -56,6 +61,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('[auth] onAuthStateChange:', _event, { user: !!session?.user })
       if (session?.user) {
         const { agreed, role } = await get().checkAgreement(session.user.id)
         set({ user: session.user, role, isNewUser: !agreed, loading: false })
