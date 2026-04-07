@@ -593,6 +593,51 @@
 
 ---
 
+## Phase 9: 에셋 플랫폼 확장
+
+목표: **에셋 에디터에 다양한 플랫폼별 규격과 전용 템플릿 추가**
+
+> **설계 방침:**
+> - 플랫폼별 Phase를 나눠서 독립적으로 진행 가능
+> - 각 플랫폼마다 규격(spec) 추가 + 전용 템플릿 제작
+> - 기존 `AssetPlatform` 타입에 플랫폼 추가, `STORE_ASSET_SPECS`에 규격 추가, `ASSET_TEMPLATES`에 전용 템플릿 추가
+
+### Step 9-1. YouTube
+- [ ] `AssetPlatform`에 `'youtube'` 추가
+- [ ] 규격 추가:
+  - Channel Banner (2560x1440) — safe area: 중앙 1546x423
+  - Video Thumbnail (1280x720)
+  - Channel Profile (800x800)
+- [ ] YouTube 전용 템플릿:
+  - 배너: safe area 가이드라인 오버레이, 중앙 집중 레이아웃
+  - 썸네일: 대형 텍스트 + 이미지 조합, 클릭 유도 레이아웃
+- [ ] `SpecSelectorPanel`에 'YouTube' 라벨 추가
+
+### Step 9-2. SNS 마케팅
+- [ ] `AssetPlatform`에 `'social'` 추가
+- [ ] 규격 추가:
+  - Instagram Post (1080x1080)
+  - Instagram Story (1080x1920)
+  - Facebook Cover (820x312)
+  - Twitter/X Header (1500x500)
+  - Twitter/X Post (1200x675)
+  - LinkedIn Banner (1584x396)
+- [ ] SNS 전용 템플릿 (프로모션, 안내, 이벤트 등)
+
+### Step 9-3. 모바일/앱 마케팅 고도화
+- [ ] 기존 Google Play / App Store 템플릿 고도화:
+  - 스크린샷 템플릿 추가 (기능 하이라이트, 비교, 흐름 설명)
+  - Feature Graphic 전용 템플릿
+- [ ] 추가 규격:
+  - Google Play Short Description 배너
+  - App Store Promotional Art (1024x1024)
+  - Samsung Galaxy Store 규격
+  - Huawei AppGallery 규격
+
+**산출물:** Phase 9 완성. YouTube, SNS, 모바일/앱 마케팅 에셋 규격 + 전용 템플릿
+
+---
+
 ## 일정 추정 (작업 단위)
 
 | 단계 | 스텝 수 | 핵심 난이도 |
@@ -605,6 +650,7 @@
 | **Phase 6** (후순위) | 4+ 스텝 | URL 인코딩, ICO 생성, 접근성 |
 | **Phase 7** (결제/라이선싱) | 6 스텝 | Just Apps 통합 구독, entitlement 스키마, Lemon Squeezy, HMAC webhook, 권한 게이팅, trial 중복 방지 |
 | **Phase 8** (저장/불러오기) | 4 스텝 | Storage 이미지 업로드, 설정값 저장/불러오기, 프리셋 동기화 |
+| **Phase 9** (에셋 플랫폼 확장) | 3 스텝 | YouTube/SNS/모바일 규격 + 전용 템플릿 |
 
 ### 의존성 그래프
 
@@ -614,6 +660,7 @@ Phase 1 ✅
        └→ Phase 3 ✅
             └→ Phase 4 (Supabase 연동) ✅ Step 4-1, 4-2 완료
                  ├→ Phase 5 (스토어 에셋) ✅ Step 5-1 ~ 5-3 + 5-2.5 완료
+                 │    └→ Phase 9 (에셋 플랫폼 확장) — Phase 5 기반, 독립적 진행 가능
                  ├→ Phase 6 (후순위) — 독립적, 언제든 가능
                  └→ Phase 7 (결제/라이선싱) — Phase 4 기반, Just Apps 통합 구독
                       └→ Phase 8 (저장/불러오기) — Phase 7 기반, 유료 기능으로 게이팅 + Storage 이미지

@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useAssetStore } from '@/store/asset-store'
+import { loadAllFonts } from '@/lib/font-loader'
 import { SpecSelectorPanel } from './panels/spec-selector-panel'
 import { TemplateSelectorPanel } from './panels/template-selector-panel'
 import { TextBlocksPanel } from './panels/text-blocks-panel'
@@ -12,6 +14,10 @@ import { Button } from '@/components/ui/button'
 
 export function AssetControlPanel() {
   const reset = useAssetStore((s) => s.reset)
+
+  useEffect(() => {
+    loadAllFonts()
+  }, [])
 
   return (
     <div className="flex flex-col gap-4 p-4">
